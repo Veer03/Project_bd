@@ -11,6 +11,35 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
+
+    <!-- Music-reactive background: CSS vars set by JS via MusicEngine -->
+    <style>
+      :root {
+        --bg-hue: 140;
+        --bg-sat: 18%;
+        --bg-lgt: 8%;
+      }
+      body {
+        background-color: hsl(var(--bg-hue), var(--bg-sat), var(--bg-lgt));
+        transition: background-color 0.4s ease;
+      }
+      .music-hint {
+        font-size: 0.75rem;
+        opacity: 0.5;
+        letter-spacing: 0.08em;
+        margin-top: 0.5rem;
+        animation: pulse-hint 2s ease-in-out infinite;
+      }
+      @keyframes pulse-hint {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 0.7;
+        }
+      }
+    </style>
   </head>
   <body>
     <!-- ═══════════════════════════════════════
@@ -19,7 +48,6 @@
     <section class="section active" data-section="1" id="landing">
       <canvas id="particle-canvas"></canvas>
 
-      <!-- decorative blobs -->
       <div class="blob blob-1"></div>
       <div class="blob blob-2"></div>
 
@@ -31,6 +59,9 @@
           <span class="name-highlight" data-name>Simran</span>
         </h1>
         <p class="subtitle">Made with way too much love ✨</p>
+        <p class="music-hint" id="music-hint">
+          🎵 tap anywhere to start the music
+        </p>
         <button class="btn-primary" id="btn-start">
           <span>Open Your Surprise</span>
           <svg
@@ -161,7 +192,6 @@
         <div class="command-chips">
           <span class="chip">"more confetti"</span>
           <span class="chip">"tell me a reason"</span>
-          <span class="chip">"play song"</span>
           <span class="chip">"happy birthday"</span>
         </div>
 
@@ -182,48 +212,7 @@
           id="btn-after-voice"
           style="margin-top: 2rem"
         >
-          Next →
-        </button>
-      </div>
-    </section>
-
-    <!-- ═══════════════════════════════════════
-       SECTION 5 — MUSIC VISUALIZER
-  ═══════════════════════════════════════ -->
-    <section class="section" data-section="5" id="visualizer-section">
-      <div class="blob blob-2"></div>
-      <div class="section-content">
-        <p class="pre-title">your song 🎵</p>
-        <h2 class="section-title">Happy Birthday</h2>
-        <p class="section-hint">Press play and watch the music come alive</p>
-
-        <div class="visualizer-wrap">
-          <canvas id="visualizer-canvas"></canvas>
-          <div class="viz-glow"></div>
-        </div>
-
-        <!-- 
-        DROP your mp3 file into a folder called "audio" in this project.
-        Name it: happy-birthday.mp3
-        Or swap the src below with any royalty-free song URL.
-      -->
-        <audio id="theAudio" crossorigin="anonymous">
-          <source src="audio/theAudio.mp3" type="audio/mpeg" />
-        </audio>
-
-        <div class="player-controls">
-          <button class="btn-play" id="btn-play-song">▶ Play Song</button>
-          <button class="btn-play" id="btn-stop-song" style="display: none">
-            ⏹ Stop
-          </button>
-        </div>
-
-        <button
-          class="btn-primary"
-          id="btn-after-song"
-          style="margin-top: 1.5rem"
-        >
-          Next →
+          Almost there →
         </button>
       </div>
     </section>
@@ -260,7 +249,12 @@
       </div>
     </section>
 
-    <!-- CDNs — loaded before script.js -->
+    <!-- Audio plays globally from first interaction -->
+    <audio id="theAudio" crossorigin="anonymous" loop>
+      <source src="audio/theAudio.mp3" type="audio/mpeg" />
+    </audio>
+
+    <!-- CDNs -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     <script src="script.js"></script>
   </body>

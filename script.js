@@ -4,8 +4,8 @@
 const CONFIG = {
   name: "Simran",
   candleCount: 4,
-  cutsNeeded: 5, // clicks to fully slice the cake
-  blowThreshold: 0.11, // mic volume 0–1 needed to blow (lower = easier)
+  cutsNeeded: 5,
+  blowThreshold: 0.11,
 
   message: `Some things never change — like how much you light up every room you walk into.
 
@@ -27,10 +27,136 @@ Here's to you. 💚`,
 /* ════════════════════════════════════════════
    GLOBAL STATE
    ════════════════════════════════════════════ */
-let selfieDataURL = null; // stores the photo booth selfie
-let reasonIndex = 0; // cycles through CONFIG.reasons
-let audioCtx = null; // Web Audio API context (shared)
-let vizAnimId = null; // visualizer animation frame ID
+let selfieDataURL = null;
+let reasonIndex = 0;
+let audioCtx = null;
+
+/* ════════════════════════════════════════════
+   ══ GLOBAL MUSIC ENGINE ══
+   Starts on first user interaction, runs forever.
+   Exposes: getMusicData() → { bass, mid, treble, volume, isBeat }
+   ════════════════════════════════════════════ */
+const MusicEngine = (() => {
+  const audioEl = document.getElementById("theAudio");
+  let analyser = null;
+  let dataArray = null;
+  let started = false;
+  let lastBeatTime = 0;
+  let beatCooldown = 180; // ms between beats
+  let peakHistory = [];
+  const HISTORY_LEN = 30;
+
+  // Hue targets for background shift
+  let currentHue = 140; // start green-ish
+  let targetHue = 140;
+
+  function start() {
+    if (started) return;
+    started = true;
+
+    if (!audioCtx)
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    const source = audioCtx.createMediaElementSource(audioEl);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    source.connect(analyser);
+    analyser.connect(audioCtx.destination);
+
+    audioEl.loop = true;
+    audioEl.volume = 0.7;
+    audioCtx.resume().then(() => {
+      audioEl.play().catch(() => {});
+    });
+
+    runBackgroundShifter();
+  }
+
+  function getData() {
+    if (!analyser)
+      return { bass: 0, mid: 0, treble: 0, volume: 0, isBeat: false };
+
+    analyser.getByteFrequencyData(dataArray);
+    const len = dataArray.length;
+
+    // Frequency bands
+    const bassEnd = Math.floor(len * 0.1);
+    const midEnd = Math.floor(len * 0.45);
+
+    let bassSum = 0,
+      midSum = 0,
+      trebleSum = 0;
+    for (let i = 0; i < bassEnd; i++) bassSum += dataArray[i];
+    for (let i = bassEnd; i < midEnd; i++) midSum += dataArray[i];
+    for (let i = midEnd; i < len; i++) trebleSum += dataArray[i];
+
+    const bass = bassSum / bassEnd / 255;
+    const mid = midSum / (midEnd - bassEnd) / 255;
+    const treble = trebleSum / (len - midEnd) / 255;
+    const volume = (bassSum + midSum + trebleSum) / len / 255;
+
+    // Beat detection via peak threshold
+    peakHistory.push(volume);
+    if (peakHistory.length > HISTORY_LEN) peakHistory.shift();
+    const avg = peakHistory.reduce((a, b) => a + b, 0) / peakHistory.length;
+    const now = performance.now();
+    const isBeat =
+      volume > avg * 1.35 && volume > 0.08 && now - lastBeatTime > beatCooldown;
+    if (isBeat) lastBeatTime = now;
+
+    return { bass, mid, treble, volume, isBeat };
+  }
+
+  // Smoothly shift the page background hue based on bass
+  function runBackgroundShifter() {
+    const root = document.documentElement;
+
+    function tick() {
+      const { bass, isBeat } = getData();
+
+      // On beats, target a new hue
+      if (isBeat) {
+        // Cycle: green → pink → gold → teal → back
+        const hues = [140, 340, 45, 170, 280, 20];
+        targetHue = hues[Math.floor(Math.random() * hues.length)];
+      }
+
+      // Smoothly lerp toward target
+      currentHue += (targetHue - currentHue) * 0.02;
+
+      // Subtle saturation/lightness boost on bass hits
+      const sat = 18 + bass * 22;
+      const lgt = 8 + bass * 6;
+
+      root.style.setProperty("--bg-hue", `${currentHue.toFixed(1)}`);
+      root.style.setProperty("--bg-sat", `${sat.toFixed(1)}%`);
+      root.style.setProperty("--bg-lgt", `${lgt.toFixed(1)}%`);
+
+      requestAnimationFrame(tick);
+    }
+    tick();
+  }
+
+  // Start music on first user interaction (browser autoplay policy)
+  let userInteracted = false;
+  function onFirstInteraction() {
+    if (userInteracted) return;
+    userInteracted = true;
+    start();
+    const hint = document.getElementById("music-hint");
+    if (hint) hint.style.display = "none";
+    document.removeEventListener("mousedown", onFirstInteraction);
+    document.removeEventListener("keydown", onFirstInteraction);
+    document.removeEventListener("touchstart", onFirstInteraction);
+  }
+  document.addEventListener("mousedown", onFirstInteraction);
+  document.addEventListener("keydown", onFirstInteraction);
+  document.addEventListener("touchstart", onFirstInteraction);
+
+  return { getData, start };
+})();
 
 /* ════════════════════════════════════════════
    DOM REFERENCES
@@ -48,21 +174,19 @@ function showSection(n) {
   if (!target) return;
   target.classList.add("active");
 
-  // Trigger fade-in on content
   const content = target.querySelector(".section-content");
   if (content) {
     content.classList.remove("fade-in-up");
-    void content.offsetWidth; // force reflow to restart animation
+    void content.offsetWidth;
     content.classList.add("fade-in-up");
   }
 
-  // Section-specific init
   if (n === 1) startParticles();
   if (n === 6) initFinalSection();
 }
 
 /* ════════════════════════════════════════════
-   ② PARTICLE SYSTEM
+   ② PARTICLE SYSTEM — music reactive
    ════════════════════════════════════════════ */
 const pCanvas = document.getElementById("particle-canvas");
 const pCtx = pCanvas.getContext("2d");
@@ -73,42 +197,126 @@ let pAnimId = null;
 
 const EMOJIS = ["🌸", "🌿", "💚", "✨", "🍃", "🌱", "🕊️"];
 
+// Extra emojis that burst out on peaks
+const BURST_EMOJIS = [
+  "🎉",
+  "🎊",
+  "💥",
+  "⭐",
+  "🌟",
+  "🔥",
+  "🎈",
+  "🎂",
+  "💫",
+  "🥳",
+];
+
 function resizeParticleCanvas() {
   pCanvas.width = window.innerWidth;
   pCanvas.height = window.innerHeight;
 }
 
 class Particle {
-  constructor() {
-    this.reset(true);
+  constructor(forceX, forceY, isBurst) {
+    this.isBurst = isBurst || false;
+    if (forceX !== undefined) {
+      this.x = forceX;
+      this.y = forceY;
+      this.vx = (Math.random() - 0.5) * 12;
+      this.vy = -(Math.random() * 8 + 4);
+      this.size = Math.random() * 24 + 22;
+      this.opacity = 1;
+      this.wobble = Math.random() * Math.PI * 2;
+      this.wobbleSpd = Math.random() * 0.06 + 0.02;
+      this.emoji =
+        BURST_EMOJIS[Math.floor(Math.random() * BURST_EMOJIS.length)];
+      this.rotation = Math.random() * Math.PI * 2;
+      this.rotSpd = (Math.random() - 0.5) * 0.25;
+      this.gravity = 0.18;
+      this.life = 1;
+      this.lifeDecay = Math.random() * 0.018 + 0.012;
+      this.baseSize = this.size;
+      this.musicScale = 1;
+      this.chaosX = 0;
+      this.chaosY = 0;
+    } else {
+      this.reset(true);
+    }
   }
 
   reset(initial = false) {
     this.x = Math.random() * pCanvas.width;
-    this.y = initial
-      ? Math.random() * pCanvas.height // spread on load
-      : pCanvas.height + 26; // rise from bottom
+    this.y = initial ? Math.random() * pCanvas.height : pCanvas.height + 26;
     this.vy = -(Math.random() * 1.2 + 0.4);
     this.vx = Math.random() * 0.5 - 0.25;
-    this.size = Math.random() * 20 + 35;
+    this.baseSize = Math.random() * 20 + 22;
+    this.size = this.baseSize;
     this.opacity = Math.random() * 0.5 + 0.45;
     this.wobble = Math.random() * Math.PI * 2;
     this.wobbleSpd = Math.random() * 0.035 + 0.01;
     this.emoji = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
-    this.popping = false;
-    this.popScale = 1;
     this.rotation = Math.random() * Math.PI * 2;
     this.rotSpd = (Math.random() - 0.5) * 0.04;
+    this.gravity = 0;
+    this.life = 1;
+    this.lifeDecay = 0;
+    this.musicScale = 1;
+    this.chaosX = 0;
+    this.chaosY = 0;
+    this.isBurst = false;
   }
 
-  update() {
-    this.y += this.vy;
-    this.x += this.vx;
-    this.wobble += this.wobbleSpd;
-    this.rotation += this.rotSpd;
-    this.x += Math.sin(this.wobble) * 0.6;
+  update(musicData) {
+    const { bass, mid, treble, volume, isBeat } = musicData;
 
-    // Mouse attraction within 130px
+    if (this.isBurst) {
+      // Burst particles: fly out, gravity pulls down, fade
+      this.vy += this.gravity;
+      this.x += this.vx;
+      this.y += this.vy;
+      this.wobble += this.wobbleSpd;
+      this.vx += Math.sin(this.wobble) * 0.3;
+      this.rotation += this.rotSpd * (1 + treble * 4);
+      this.life -= this.lifeDecay;
+      this.opacity = Math.max(0, this.life);
+
+      // React to music even while burst
+      this.rotSpd += (Math.random() - 0.5) * bass * 0.08;
+      return;
+    }
+
+    // Normal ambient particles
+    // Music-reactive chaos: on beat, scatter chaotically
+    if (isBeat) {
+      this.chaosX = (Math.random() - 0.5) * 18 * bass;
+      this.chaosY = (Math.random() - 0.5) * 18 * bass;
+      this.rotSpd = (Math.random() - 0.5) * (0.15 + bass * 0.6); // wild spin
+    }
+
+    // Dampen chaos smoothly
+    this.chaosX *= 0.88;
+    this.chaosY *= 0.88;
+    this.rotSpd *= 0.94;
+
+    this.y += this.vy - mid * 0.8; // rise faster with mid freqs
+    this.x += this.vx + this.chaosX;
+    this.y += this.chaosY;
+    this.wobble += this.wobbleSpd + treble * 0.04;
+    this.rotation += this.rotSpd;
+    this.x += Math.sin(this.wobble) * (0.6 + bass * 2.5); // wider wobble on bass
+
+    // Music-reactive size pulse
+    const targetScale = 1 + volume * 1.8 + bass * 1.2;
+    this.musicScale += (targetScale - this.musicScale) * 0.12;
+    this.size = this.baseSize * this.musicScale;
+
+    // Opacity pulses with treble
+    this.opacity = Math.min(
+      1,
+      Math.max(0.15, Math.random() * 0.5 + 0.35 + treble * 0.3),
+    );
+
+    // Mouse attraction
     const dx = mouseX - this.x;
     const dy = mouseY - this.y;
     const d = Math.hypot(dx, dy);
@@ -117,26 +325,20 @@ class Particle {
       this.y += (dy / d) * 0.9;
     }
 
-    if (this.popping) {
-      this.popScale += 0.18;
-      this.opacity -= 0.09;
-    }
-
-    // Reset when off screen or faded
     if (
       this.opacity <= 0 ||
-      this.y < -60 ||
-      this.x < -60 ||
-      this.x > pCanvas.width + 60
+      this.y < -80 ||
+      this.x < -80 ||
+      this.x > pCanvas.width + 80
     ) {
       this.reset(false);
     }
   }
 
   draw() {
+    if (this.opacity <= 0) return;
     pCtx.save();
     pCtx.translate(this.x, this.y);
-    pCtx.scale(this.popScale, this.popScale);
     pCtx.rotate(this.rotation);
     pCtx.globalAlpha = Math.max(0, this.opacity);
     pCtx.font = `${this.size}px serif`;
@@ -149,19 +351,156 @@ class Particle {
   isHit(cx, cy) {
     return Math.hypot(cx - this.x, cy - this.y) < this.size / 2;
   }
+
+  isDead() {
+    return this.isBurst && this.life <= 0;
+  }
 }
+
+// Track when we last did an emoji burst to throttle them
+let lastEmojiPeak = 0;
+
+/* ════════════════════════════════════════════
+   GLOBAL BACKGROUND EMOJI LAYER
+   Floats softly on every section (not landing).
+   Injected as a fixed canvas behind everything.
+   ════════════════════════════════════════════ */
+const bgCanvas = document.createElement("canvas");
+bgCanvas.id = "bg-emoji-canvas";
+bgCanvas.style.cssText =
+  "position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0.45;";
+document.body.appendChild(bgCanvas);
+const bgCtx = bgCanvas.getContext("2d");
+const BG_EMOJIS = ["🌸", "✨", "🌿", "💚", "🍃", "🌱", "🕊️", "⭐", "💫"];
+let bgParticles = [];
+
+class BgParticle {
+  constructor() {
+    this.reset(true);
+  }
+  reset(initial) {
+    this.x = Math.random() * bgCanvas.width;
+    this.y = initial ? Math.random() * bgCanvas.height : bgCanvas.height + 30;
+    this.vy = -(Math.random() * 0.5 + 0.2);
+    this.vx = (Math.random() - 0.5) * 0.3;
+    this.size = Math.random() * 18 + 14;
+    this.baseSize = this.size;
+    this.opacity = Math.random() * 0.35 + 0.15;
+    this.wobble = Math.random() * Math.PI * 2;
+    this.wobbleSpd = Math.random() * 0.02 + 0.005;
+    this.rotation = Math.random() * Math.PI * 2;
+    this.rotSpd = (Math.random() - 0.5) * 0.02;
+    this.emoji = BG_EMOJIS[Math.floor(Math.random() * BG_EMOJIS.length)];
+    this.musicScale = 1;
+  }
+  update(md) {
+    const { bass, treble, isBeat } = md;
+    this.wobble += this.wobbleSpd;
+    this.rotation += this.rotSpd + (isBeat ? (Math.random() - 0.5) * 0.15 : 0);
+    this.x += this.vx + Math.sin(this.wobble) * 0.4;
+    this.y += this.vy - bass * 0.4;
+    const ts = 1 + bass * 0.8 + treble * 0.3;
+    this.musicScale += (ts - this.musicScale) * 0.08;
+    this.size = this.baseSize * this.musicScale;
+    if (isBeat) this.opacity = Math.min(0.65, this.opacity + 0.15);
+    else this.opacity += (Math.random() * 0.35 + 0.15 - this.opacity) * 0.05;
+    if (this.y < -40 || this.x < -40 || this.x > bgCanvas.width + 40)
+      this.reset(false);
+  }
+  draw() {
+    bgCtx.save();
+    bgCtx.translate(this.x, this.y);
+    bgCtx.rotate(this.rotation);
+    bgCtx.globalAlpha = Math.max(0, this.opacity);
+    bgCtx.font = `${this.size}px serif`;
+    bgCtx.textAlign = "center";
+    bgCtx.textBaseline = "middle";
+    bgCtx.fillText(this.emoji, 0, 0);
+    bgCtx.restore();
+  }
+}
+
+function initBgCanvas() {
+  bgCanvas.width = window.innerWidth;
+  bgCanvas.height = window.innerHeight;
+  bgParticles = Array.from({ length: 35 }, () => new BgParticle());
+}
+
+function runBgLoop() {
+  bgCanvas.width = window.innerWidth;
+  bgCanvas.height = window.innerHeight;
+  initBgCanvas();
+  function tick() {
+    bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+    const md = MusicEngine.getData();
+    bgParticles.forEach((p) => {
+      p.update(md);
+      p.draw();
+    });
+    requestAnimationFrame(tick);
+  }
+  tick();
+}
+window.addEventListener("resize", () => {
+  bgCanvas.width = window.innerWidth;
+  bgCanvas.height = window.innerHeight;
+});
+// Start immediately — always running in background
+runBgLoop();
 
 function startParticles() {
   resizeParticleCanvas();
-  if (pAnimId) return;
+  if (pAnimId) cancelAnimationFrame(pAnimId); // allow clean restart
+  pAnimId = null;
   particles = Array.from({ length: 45 }, () => new Particle());
 
   function loop() {
+    const musicData = MusicEngine.getData();
+
     pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+
+    // Remove dead burst particles
+    particles = particles.filter((p) => !p.isDead());
+
+    // Maintain ambient particle count at 45
+    while (particles.filter((p) => !p.isBurst).length < 45) {
+      particles.push(new Particle());
+    }
+
+    // Emoji burst on loud peaks
+    const now = performance.now();
+    if (
+      musicData.isBeat &&
+      musicData.bass > 0.25 &&
+      now - lastEmojiPeak > 400
+    ) {
+      lastEmojiPeak = now;
+      const count = Math.floor(3 + musicData.bass * 6);
+      for (let i = 0; i < count; i++) {
+        particles.push(
+          new Particle(
+            Math.random() * pCanvas.width,
+            Math.random() * pCanvas.height * 0.7,
+            true,
+          ),
+        );
+      }
+      // Confetti micro-burst too
+      confetti({
+        particleCount: Math.floor(musicData.bass * 40),
+        spread: 60,
+        origin: { x: Math.random(), y: Math.random() * 0.6 },
+        colors: ["#7ec8a0", "#f9c6d0", "#ffffff", "#b8e0c8", "#f9c74f"],
+        scalar: 0.7,
+        ticks: 80,
+      });
+    }
+
     particles.forEach((p) => {
-      p.update();
+      p.update(musicData);
       p.draw();
     });
+
     pAnimId = requestAnimationFrame(loop);
   }
   loop();
@@ -179,12 +518,19 @@ window.addEventListener("mousemove", (e) => {
 });
 window.addEventListener("resize", resizeParticleCanvas);
 
-// Click on landing canvas → pop particle
 pCanvas.addEventListener("click", (e) => {
   let hit = false;
   particles.forEach((p) => {
-    if (!p.popping && p.isHit(e.clientX, e.clientY)) {
-      p.popping = true;
+    if (!p.isBurst && p.isHit(e.clientX, e.clientY)) {
+      // Turn it into a burst particle
+      p.isBurst = true;
+      p.vx = (Math.random() - 0.5) * 10;
+      p.vy = -(Math.random() * 6 + 3);
+      p.gravity = 0.18;
+      p.life = 1;
+      p.lifeDecay = 0.02;
+      p.emoji = BURST_EMOJIS[Math.floor(Math.random() * BURST_EMOJIS.length)];
+      p.rotSpd = (Math.random() - 0.5) * 0.3;
       hit = true;
     }
   });
@@ -203,10 +549,11 @@ pCanvas.addEventListener("click", (e) => {
 });
 
 /* ════════════════════════════════════════════
-   CAKE — BUILD CANDLES
+   ③ CANDLE FLAMES — music reactive flicker
    ════════════════════════════════════════════ */
 const candlesRow = document.getElementById("candles-row");
 let candlesOut = 0;
+let flameAnimId = null;
 
 function buildCandles() {
   candlesRow.innerHTML = "";
@@ -221,6 +568,36 @@ function buildCandles() {
     candlesRow.appendChild(candle);
   }
   updateCandleCount();
+  startFlameFlicker();
+}
+
+// Continuously update flame CSS to reflect music
+function startFlameFlicker() {
+  cancelAnimationFrame(flameAnimId);
+
+  function tick() {
+    const { bass, mid, treble, isBeat } = MusicEngine.getData();
+    const flames = candlesRow.querySelectorAll(".flame:not(.out)");
+
+    flames.forEach((flame, i) => {
+      // Each flame gets slightly different phase offset for organic feel
+      const phase = (i / CONFIG.candleCount) * Math.PI;
+      const flicker =
+        1 +
+        bass * 1.4 +
+        Math.sin(Date.now() * 0.006 + phase) * 0.15 * (1 + mid);
+      const sway = Math.sin(Date.now() * 0.004 + phase) * (3 + bass * 12);
+      const glowIntensity = 8 + bass * 30 + treble * 15;
+      const brightness = isBeat ? 1.4 : 1;
+
+      flame.style.transform = `scaleX(${0.7 + bass * 0.5}) scaleY(${flicker}) translateX(${sway}px)`;
+      flame.style.filter = `brightness(${brightness}) drop-shadow(0 0 ${glowIntensity}px rgba(255,200,50,0.9))`;
+      flame.style.opacity = `${0.85 + treble * 0.15}`;
+    });
+
+    flameAnimId = requestAnimationFrame(tick);
+  }
+  tick();
 }
 
 function updateCandleCount() {
@@ -232,13 +609,11 @@ function updateCandleCount() {
 function blowOutCandle() {
   const flames = candlesRow.querySelectorAll(".flame:not(.out)");
   if (flames.length === 0) return;
-  // Blow out a random unlit one (feels more natural)
   const target = flames[Math.floor(Math.random() * flames.length)];
   target.classList.add("out");
   candlesOut++;
   updateCandleCount();
 
-  // Small puff confetti
   confetti({
     particleCount: 12,
     spread: 40,
@@ -257,7 +632,6 @@ function onAllCandlesOut() {
   document.getElementById("volume-wrap").style.display = "none";
   document.getElementById("btn-start-mic").style.display = "none";
 
-  // Big confetti burst
   confetti({
     particleCount: 220,
     spread: 90,
@@ -272,7 +646,7 @@ function onAllCandlesOut() {
 }
 
 /* ════════════════════════════════════════════
-   ④ MIC — BLOW DETECTION (Web Audio API)
+   ④ MIC — BLOW DETECTION
    ════════════════════════════════════════════ */
 let micStream = null;
 let micAnalyser = null;
@@ -285,13 +659,12 @@ async function startMic() {
       video: false,
     });
 
-    // Create AudioContext only after user gesture (browser requirement)
     if (!audioCtx)
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     const source = audioCtx.createMediaStreamSource(micStream);
     micAnalyser = audioCtx.createAnalyser();
-    micAnalyser.fftSize = 256; // how many frequency buckets to analyse
+    micAnalyser.fftSize = 256;
     source.connect(micAnalyser);
 
     const dataArray = new Uint8Array(micAnalyser.frequencyBinCount);
@@ -302,19 +675,14 @@ async function startMic() {
 
     function detectBlow() {
       micAnalyser.getByteFrequencyData(dataArray);
-
-      // Average volume across all frequency bins
       const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-      const volume = avg / 255; // normalise to 0–1
-
-      // Update visual bar
+      const volume = avg / 255;
       volBar.style.width = `${Math.min(volume * 5 * 100, 100)}%`;
 
       if (volume > CONFIG.blowThreshold) {
         blowOutCandle();
       }
 
-      // Only keep checking if candles remain
       if (candlesOut < CONFIG.candleCount) {
         micAnimId = requestAnimationFrame(detectBlow);
       }
@@ -350,23 +718,18 @@ document.getElementById("cake-wrapper").addEventListener("click", (e) => {
   document.getElementById("cuts-left").textContent = Math.max(0, cutsLeft);
 
   const cw = document.getElementById("cake-wrapper");
-
-  // Remove previous cut class, add shake
   cw.className = cw.className.replace(/cut-\d/g, "").trim();
   cw.classList.add("shaking");
   setTimeout(() => cw.classList.remove("shaking"), 300);
 
-  // Add progressive cut class (cut-1 through cut-4)
   const cutClass = `cut-${Math.min(cutsDone, 4)}`;
   setTimeout(() => cw.classList.add(cutClass), 50);
 
-  // Draw a slash line on the cake
   const slash = document.createElement("div");
   slash.className = "slash-line";
   cw.appendChild(slash);
   setTimeout(() => slash.remove(), 600);
 
-  // Small confetti per cut — from cake position
   confetti({
     particleCount: 29,
     spread: 50,
@@ -386,12 +749,10 @@ document.getElementById("cake-wrapper").addEventListener("click", (e) => {
 function onCakeCut() {
   document.getElementById("cut-prompt").style.display = "none";
 
-  // Final dramatic split
   const cw = document.getElementById("cake-wrapper");
-  cw.className = cw.className.replace(/cut-\d/g, "").trim();
+  cw.className = cw.className.replace(/cut-[\d\w]+/g, "").trim();
   cw.classList.add("cut-done");
 
-  // Big celebration burst
   ["left", "right"].forEach((side, i) => {
     setTimeout(() => {
       confetti({
@@ -414,7 +775,7 @@ document
   .addEventListener("click", () => showSection(3));
 
 /* ════════════════════════════════════════════
-   ⑥ PHOTO BOOTH (getUserMedia video)
+   ⑥ PHOTO BOOTH
    ════════════════════════════════════════════ */
 const boothVideo = document.getElementById("booth-video");
 const boothCanvas = document.getElementById("booth-canvas");
@@ -447,16 +808,15 @@ async function startCamera() {
   }
 }
 
-// Draw animated sparkle overlay on top of webcam
 function drawBoothOverlay() {
+  const { bass } = MusicEngine.getData();
   boothCtx.clearRect(0, 0, boothCanvas.width, boothCanvas.height);
 
-  // Draw birthday text banner at bottom
   boothCtx.save();
-  boothCtx.fillStyle = "rgba(126,200,160,0.85)";
+  boothCtx.fillStyle = `rgba(126,200,160,${0.75 + bass * 0.25})`;
   boothCtx.fillRect(0, boothCanvas.height - 36, boothCanvas.width, 36);
   boothCtx.fillStyle = "#fff";
-  boothCtx.font = 'bold 16px "DM Sans", sans-serif';
+  boothCtx.font = `bold ${16 + bass * 4}px "DM Sans", sans-serif`;
   boothCtx.textAlign = "center";
   boothCtx.fillText(
     `🎂 Happy Birthday ${CONFIG.name}! 🎂`,
@@ -474,13 +834,11 @@ function captureSelfie() {
   merged.height = boothCanvas.height;
   const mCtx = merged.getContext("2d");
 
-  // Draw the mirrored video frame
   mCtx.save();
   mCtx.scale(-1, 1);
   mCtx.drawImage(boothVideo, -merged.width, 0, merged.width, merged.height);
   mCtx.restore();
 
-  // Apply colour filter overlay
   if (activeFilter === "warm") {
     mCtx.fillStyle = "rgba(255,180,80,0.15)";
     mCtx.fillRect(0, 0, merged.width, merged.height);
@@ -492,36 +850,26 @@ function captureSelfie() {
     mCtx.fillRect(0, 0, merged.width, merged.height);
   }
 
-  // ── BIRTHDAY FRAME ─────────────────────────
-
+  // Frame & decorations
   mCtx.save();
-
-  // Background confetti
   for (let i = 0; i < 60; i++) {
     const x = Math.random() * merged.width;
     const y = Math.random() * 80;
-
     mCtx.fillStyle = ["#ff4d6d", "#4dabf7", "#ffd43b", "#69db7c"][
       Math.floor(Math.random() * 4)
     ];
-
     mCtx.fillRect(x, y, 6, 6);
   }
 
-  // ── PARTY FLAGS (TOP) ──
-
   const flagCount = 8;
   const spacing = merged.width / (flagCount + 1);
-
   for (let i = 1; i <= flagCount; i++) {
     const x = spacing * i;
-
     mCtx.beginPath();
     mCtx.moveTo(x - 15, 20);
     mCtx.lineTo(x + 15, 20);
     mCtx.lineTo(x, 50);
     mCtx.closePath();
-
     const colors = [
       "#ff922b",
       "#ff6b6b",
@@ -530,19 +878,15 @@ function captureSelfie() {
       "#ffd43b",
       "#20c997",
     ];
-
     mCtx.fillStyle = colors[i % colors.length];
     mCtx.fill();
   }
-
-  // ── BALLOONS (LEFT) ──
 
   function drawBalloon(x, y, color) {
     mCtx.beginPath();
     mCtx.arc(x, y, 18, 0, Math.PI * 2);
     mCtx.fillStyle = color;
     mCtx.fill();
-
     mCtx.beginPath();
     mCtx.moveTo(x, y + 18);
     mCtx.quadraticCurveTo(x - 5, y + 45, x + 2, y + 65);
@@ -552,21 +896,15 @@ function captureSelfie() {
 
   drawBalloon(40, merged.height - 80, "#ff4d6d");
   drawBalloon(70, merged.height - 70, "#ff922b");
-
-  // ── BALLOONS (RIGHT) ──
-
   drawBalloon(merged.width - 40, merged.height - 80, "#ff4d6d");
   drawBalloon(merged.width - 70, merged.height - 70, "#ff922b");
-
-  // ── HAPPY BIRTHDAY TEXT ──
 
   mCtx.fillStyle = "#20c997";
   mCtx.font = `bold 40px "DM Sans", sans-serif`;
   mCtx.textAlign = "center";
   mCtx.fillText("Happy Birthday :)", merged.width / 2, merged.height - 60);
-
   mCtx.restore();
-  // ── BANNER ────────────────────────────────────
+
   mCtx.save();
   mCtx.fillStyle = "rgba(126,200,160,0.88)";
   mCtx.fillRect(0, merged.height - 36, merged.width, 36);
@@ -574,14 +912,13 @@ function captureSelfie() {
   mCtx.font = `bold 19px "DM Sans", sans-serif`;
   mCtx.textAlign = "center";
   mCtx.fillText(
-    `🎂 y look beautifull!! ${CONFIG.name}! 🎂`,
+    `🎂 you look beautiful!! ${CONFIG.name}! 🎂`,
     merged.width / 2,
     merged.height - 12,
   );
   mCtx.restore();
 
   selfieDataURL = merged.toDataURL("image/png");
-
   document.getElementById("selfie-img").src = selfieDataURL;
   document.getElementById("selfie-result").style.display = "block";
   document.getElementById("btn-capture").style.display = "none";
@@ -603,7 +940,6 @@ function stopCamera() {
   }
 }
 
-// Filter buttons
 document.querySelectorAll(".filter-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
     document
@@ -611,7 +947,6 @@ document.querySelectorAll(".filter-btn").forEach((btn) => {
       .forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
     activeFilter = btn.dataset.filter;
-    // Remove all filter classes then add the selected one
     boothVideo.className = boothVideo.className
       .replace(/filter-\w+/g, "")
       .trim();
@@ -628,7 +963,7 @@ document.getElementById("btn-after-booth").addEventListener("click", () => {
 });
 
 /* ════════════════════════════════════════════
-   ⑦ VOICE COMMANDS (Web Speech API)
+   ⑦ VOICE COMMANDS
    ════════════════════════════════════════════ */
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -636,7 +971,7 @@ let recognition = null;
 
 if (SpeechRecognition) {
   recognition = new SpeechRecognition();
-  recognition.continuous = false; // stop after one result
+  recognition.continuous = false;
   recognition.interimResults = false;
   recognition.lang = "en-US";
 
@@ -648,7 +983,17 @@ if (SpeechRecognition) {
     document.getElementById("btn-voice").classList.remove("listening");
   };
 
-  recognition.onerror = () => {
+  recognition.onerror = (e) => {
+    document.getElementById("btn-voice").classList.remove("listening");
+    // "no-speech" is normal, don't alert. Only show unexpected errors.
+    if (e.error !== "no-speech" && e.error !== "aborted") {
+      document.getElementById("voice-response").textContent =
+        `Error: ${e.error}. Try again.`;
+      document.getElementById("voice-feedback").style.display = "block";
+    }
+  };
+
+  recognition.onend = () => {
     document.getElementById("btn-voice").classList.remove("listening");
   };
 }
@@ -663,13 +1008,12 @@ function handleVoiceCommand(cmd) {
     el.textContent = CONFIG.reasons[reasonIndex % CONFIG.reasons.length];
     reasonIndex++;
   } else if (cmd.includes("song") || cmd.includes("play")) {
-    el.textContent = "🎵 Heading to your song!";
-    setTimeout(() => showSection(5), 1200);
+    el.textContent = "🎵 Music is already playing! 💚";
   } else if (cmd.includes("happy birthday") || cmd.includes("birthday")) {
     confetti({ particleCount: 150, spread: 100, origin: { y: 0.3 } });
     el.textContent = "🎂 Happy Birthday Simran!! 💚";
   } else {
-    el.textContent = `Hmm, I didn\'t catch that. Try again!`;
+    el.textContent = `Hmm, I didn't catch that. Try again!`;
   }
 }
 
@@ -681,121 +1025,26 @@ document.getElementById("btn-voice").addEventListener("click", () => {
   const btn = document.getElementById("btn-voice");
   btn.classList.add("listening");
   document.getElementById("voice-feedback").style.display = "none";
-  recognition.start();
+  try {
+    recognition.abort(); // stop any in-progress session first
+  } catch (e) {}
+  setTimeout(() => {
+    try {
+      recognition.start();
+    } catch (e) {
+      btn.classList.remove("listening");
+    }
+  }, 100); // small delay after abort so Firefox is ready
 });
 
 document
   .getElementById("btn-after-voice")
-  .addEventListener("click", () => showSection(5));
-
-/* ════════════════════════════════════════════
-   ⑧ MUSIC VISUALIZER (Web Audio API)
-   ════════════════════════════════════════════ */
-const vizCanvas = document.getElementById("visualizer-canvas");
-const vizCtx = vizCanvas.getContext("2d");
-const audioEl = document.getElementById("theAudio");
-let vizSource = null;
-let vizAnalyser = null;
-
-function initVisualizer() {
-  if (!audioCtx)
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if (vizSource) return; // already set up
-
-  vizSource = audioCtx.createMediaElementSource(audioEl);
-  vizAnalyser = audioCtx.createAnalyser();
-  vizAnalyser.fftSize = 128; // 64 frequency bars
-
-  vizSource.connect(vizAnalyser);
-  vizAnalyser.connect(audioCtx.destination); // so we still hear the audio
-}
-
-function drawVisualizer() {
-  const W = vizCanvas.width;
-  const H = vizCanvas.height;
-
-  const dataArray = new Uint8Array(vizAnalyser.frequencyBinCount);
-  const barWidth = (W / dataArray.length) * 2;
-
-  function frame() {
-    vizAnimId = requestAnimationFrame(frame);
-
-    vizAnalyser.getByteFrequencyData(dataArray);
-    vizCtx.clearRect(0, 0, W, H);
-
-    dataArray.forEach((value, i) => {
-      const barH = (value / 255) * H * 0.9;
-      const x = i * (barWidth + 2);
-
-      // Gradient per bar — green to pink based on height
-      const grad = vizCtx.createLinearGradient(x, H, x, H - barH);
-      grad.addColorStop(0, "#4a9e72");
-      grad.addColorStop(0.6, "#7ec8a0");
-      grad.addColorStop(1, "#f9c6d0");
-
-      vizCtx.fillStyle = grad;
-      vizCtx.beginPath();
-      vizCtx.roundRect(x, H - barH, barWidth, barH, 4);
-      vizCtx.fill();
-    });
-  }
-  frame();
-
-  document.querySelector(".viz-glow").classList.add("active");
-}
-
-function stopVisualizer() {
-  cancelAnimationFrame(vizAnimId);
-  vizCtx.clearRect(0, 0, vizCanvas.width, vizCanvas.height);
-  document.querySelector(".viz-glow").classList.remove("active");
-}
-
-function resizeVizCanvas() {
-  vizCanvas.width = vizCanvas.offsetWidth;
-  vizCanvas.height = vizCanvas.offsetHeight;
-}
-
-document.getElementById("btn-play-song").addEventListener("click", () => {
-  resizeVizCanvas();
-  initVisualizer();
-
-  audioEl.currentTime = 0;
-  audioEl.play().catch(() => {
-    // If no audio file yet, visualizer still runs (silently)
-    console.warn(
-      "No audio file found. Add audio/happy-birthday.mp3 to the project.",
-    );
-  });
-
-  drawVisualizer();
-  document.getElementById("btn-play-song").style.display = "none";
-  document.getElementById("btn-stop-song").style.display = "inline-block";
-});
-
-document.getElementById("btn-stop-song").addEventListener("click", () => {
-  audioEl.pause();
-  stopVisualizer();
-  document.getElementById("btn-stop-song").style.display = "none";
-  document.getElementById("btn-play-song").style.display = "inline-block";
-});
-
-audioEl.addEventListener("ended", () => {
-  stopVisualizer();
-  document.getElementById("btn-stop-song").style.display = "none";
-  document.getElementById("btn-play-song").style.display = "inline-block";
-});
-
-document.getElementById("btn-after-song").addEventListener("click", () => {
-  audioEl.pause();
-  stopVisualizer();
-  showSection(6);
-});
+  .addEventListener("click", () => showSection(6));
 
 /* ════════════════════════════════════════════
    ⑨ FINAL SECTION
    ════════════════════════════════════════════ */
 function initFinalSection() {
-  // Fill message from CONFIG
   const paragraphs = CONFIG.message
     .split("\n")
     .filter((l) => l.trim())
@@ -803,7 +1052,6 @@ function initFinalSection() {
     .join("");
   finalMessage.innerHTML = paragraphs;
 
-  // Show selfie if captured
   if (selfieDataURL) {
     const finalSelfie = document.getElementById("final-selfie");
     const selfieWrap = document.getElementById("final-selfie-wrap");
@@ -811,7 +1059,6 @@ function initFinalSection() {
     selfieWrap.style.display = "block";
   }
 
-  // Auto-confetti on arrival
   setTimeout(() => {
     ["left", "center", "right"].forEach((pos, i) => {
       setTimeout(() => {
@@ -840,7 +1087,6 @@ document.getElementById("btn-more-confetti").addEventListener("click", () => {
 });
 
 document.getElementById("btn-restart").addEventListener("click", () => {
-  // Reset cake
   cutsLeft = CONFIG.cutsNeeded;
   cutsDone = 0;
   const cw = document.getElementById("cake-wrapper");
@@ -853,18 +1099,14 @@ document.getElementById("btn-restart").addEventListener("click", () => {
   document.getElementById("btn-capture").style.display = "none";
   document.getElementById("btn-start-cam").style.display = "block";
   document.getElementById("voice-feedback").style.display = "none";
-  document.getElementById("btn-play-song").style.display = "inline-block";
-  document.getElementById("btn-stop-song").style.display = "none";
   buildCandles();
   stopMic();
   stopCamera();
-  audioEl.pause();
-  stopVisualizer();
   showSection(1);
 });
 
 /* ════════════════════════════════════════════
-   ⑩ SECTION 1 BUTTON
+   ⑩ LANDING BUTTON
    ════════════════════════════════════════════ */
 document.getElementById("btn-start").addEventListener("click", () => {
   stopParticles();
@@ -872,20 +1114,14 @@ document.getElementById("btn-start").addEventListener("click", () => {
 });
 
 /* ════════════════════════════════════════════
-   INIT — runs on page load
+   INIT
    ════════════════════════════════════════════ */
 function init() {
-  // Inject name everywhere
   nameSpans.forEach((s) => {
     s.textContent = CONFIG.name;
   });
-
-  // Build candles
   buildCandles();
-
-  // Show section 1 with particles
   showSection(1);
-
   console.log(`🎂 Birthday site loaded for: ${CONFIG.name}`);
 }
 
