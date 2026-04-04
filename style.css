@@ -1,0 +1,600 @@
+/* ============================================
+   CSS CUSTOM PROPERTIES (VARIABLES)
+   Your entire design system lives here.
+   Change one value = changes the whole site.
+   ============================================ */
+:root {
+  /* --- Brand Colors --- */
+  --color-bg: #f0faf4; /* very light mint, the page background */
+  --color-primary: #7ec8a0; /* pistachio green, main buttons/accents */
+  --color-primary-dark: #5aab82; /* darker shade for hover states */
+  --color-secondary: #c8e6d4; /* lighter green for subtle backgrounds */
+  --color-accent: #f9c6d0; /* soft pink — contrast pop (candles, hearts) */
+  --color-text: #2d4a3e; /* dark green for body text */
+  --color-text-light: #6b8f7e; /* muted green for hints/subtitles */
+  --color-white: #ffffff;
+
+  /* --- Typography ---
+     We load these from Google Fonts (we'll add the <link> next).
+     Font stacks always end with a generic fallback (serif, sans-serif)
+     in case the font fails to load.
+  */
+  --font-display: "Playfair Display", Georgia, serif; /* headings */
+  --font-body: "Lato", Arial, sans-serif; /* body text */
+
+  /* --- Spacing ---
+     Using a consistent scale means spacing feels harmonious.
+     All spacing is multiples of 8px (a common design system rule).
+  */
+  --space-xs: 0.5rem; /*  8px */
+  --space-sm: 1rem; /* 16px */
+  --space-md: 1.5rem; /* 24px */
+  --space-lg: 2rem; /* 32px */
+  --space-xl: 3rem; /* 48px */
+
+  /* --- Border Radius --- */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 32px;
+  --radius-pill: 999px; /* makes any element a pill/capsule shape */
+
+  /* --- Shadows ---
+     box-shadow syntax: x-offset y-offset blur spread color
+  */
+  --shadow-soft: 0 4px 24px rgba(126, 200, 160, 0.18);
+  --shadow-card: 0 8px 40px rgba(45, 74, 62, 0.1);
+
+  /* --- Transitions ---
+     Reusable animation timing so all interactions feel consistent.
+  */
+  --transition-fast: 0.2s ease;
+  --transition-smooth: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  /* --- Cake Config ---
+     Sizes for the CSS cake. Changing these redraws the whole cake.
+  */
+  --cake-bottom-w: 260px;
+  --cake-middle-w: 200px;
+  --cake-top-w: 140px;
+  --cake-layer-h: 60px;
+}
+
+/* ============================================
+   GOOGLE FONTS IMPORT
+   Must come before any rule that uses the fonts.
+   @import pulls in external stylesheets.
+   ============================================ */
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap");
+
+/* ============================================
+   CSS RESET
+   Browsers have their own default styles that
+   differ between Chrome, Firefox, Safari etc.
+   A reset removes those defaults so we start
+   from a consistent baseline.
+   ============================================ */
+*,
+*::before,
+*::after {
+  /* box-sizing: border-box means padding and border are INCLUDED
+     in an element's width/height. Without this, a 200px div with
+     20px padding would actually be 240px wide — confusing. */
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Remove default list bullets/numbers */
+ul,
+ol {
+  list-style: none;
+}
+
+/* Make images behave like block elements and scale correctly */
+img {
+  display: block;
+  max-width: 100%;
+}
+
+/* Remove default button styles so we can style from scratch */
+button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+html {
+  /* font-size: 16px is the browser default.
+     Setting it explicitly on html means 1rem = 16px everywhere.
+     All our spacing variables use rem, so this is the base. */
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+
+  /* We want sections to stack vertically and fill the screen */
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================
+   SECTION SYSTEM
+   The journey engine. Only .active sections
+   are visible. JS adds/removes .active.
+   ============================================ */
+.section {
+  /* Each section fills the full viewport height */
+  min-height: 100vh;
+  width: 100%;
+
+  /* Center everything inside each section */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Hidden by default. position: relative needed so the particle
+     canvas (position: absolute) stays inside this section. */
+  display: none;
+  position: relative;
+  overflow: hidden;
+}
+
+/* The ONE section that should be visible */
+.section.active {
+  display: flex;
+}
+
+/* The content box inside each section.
+   z-index: 1 puts it ABOVE the particle canvas (which is z-index: 0) */
+.section-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: var(--space-lg);
+  max-width: 680px;
+  width: 100%;
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+.birthday-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  /* clamp(min, preferred, max) — font scales with viewport but
+     never goes below 2.5rem or above 5rem. Great for responsive design. */
+  color: var(--color-text);
+  line-height: 1.2;
+  margin-bottom: var(--space-md);
+}
+
+.name-highlight {
+  color: var(--color-primary-dark);
+  /* text-decoration: underline with a custom color */
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent);
+  text-underline-offset: 6px; /* gap between text and underline */
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  color: var(--color-text);
+  margin-bottom: var(--space-sm);
+}
+
+.subtitle,
+.section-hint {
+  font-size: 1.1rem;
+  color: var(--color-text-light);
+  margin-bottom: var(--space-lg);
+  font-weight: 300;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+/* Primary button — the main call to action */
+.btn-primary {
+  display: inline-block;
+  padding: var(--space-sm) var(--space-xl);
+  background: var(--color-primary);
+  color: var(--color-white);
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-soft);
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+  margin-top: var(--space-sm);
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+  /* translateY(-2px) lifts the button up slightly — classic hover effect */
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(126, 200, 160, 0.35);
+}
+
+.btn-primary:active {
+  /* Press down on click */
+  transform: translateY(0);
+}
+
+/* Secondary button — less emphasis */
+.btn-secondary {
+  display: inline-block;
+  padding: var(--space-xs) var(--space-lg);
+  background: transparent;
+  color: var(--color-primary-dark);
+  font-size: 1rem;
+  font-weight: 700;
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-pill);
+  transition: all var(--transition-fast);
+  margin-top: var(--space-sm);
+}
+
+.btn-secondary:hover {
+  background: var(--color-secondary);
+  transform: translateY(-2px);
+}
+
+/* Giant mic button for voice section */
+.btn-mic {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  font-size: 2.5rem;
+  box-shadow: var(--shadow-soft);
+  transition: all var(--transition-fast);
+  margin: var(--space-md) auto;
+  display: block;
+}
+
+.btn-mic:hover,
+.btn-mic.listening {
+  background: var(--color-primary-dark);
+  transform: scale(1.1);
+  /* Pulsing glow effect when listening */
+  box-shadow:
+    0 0 0 12px rgba(126, 200, 160, 0.2),
+    0 0 0 24px rgba(126, 200, 160, 0.1);
+}
+
+/* ============================================
+   PARTICLE CANVAS
+   Sits behind section content, fills the section.
+   pointer-events: none = mouse clicks pass through
+   it to elements behind/above it.
+   ============================================ */
+#particle-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================
+   CAKE SECTION
+   ============================================ */
+.cake-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: var(--space-lg) auto;
+  cursor: pointer; /* shows hand cursor for click-to-cut */
+}
+
+/* All three layers share these base styles */
+.cake-layer {
+  height: var(--cake-layer-h);
+  border-radius: var(--radius-md) var(--radius-md) var(--radius-sm)
+    var(--radius-sm);
+  position: relative;
+  transition: transform var(--transition-smooth);
+}
+
+.cake-layer--bottom {
+  width: var(--cake-bottom-w);
+  background: linear-gradient(135deg, #f9d5a7, #f5c07a);
+  /* linear-gradient creates a smooth color transition.
+     135deg = diagonal direction.
+     These are warm golden tones for the cake sponge. */
+}
+
+.cake-layer--middle {
+  width: var(--cake-middle-w);
+  background: linear-gradient(135deg, #fde8c8, #f9d5a7);
+}
+
+.cake-layer--top {
+  width: var(--cake-top-w);
+  background: linear-gradient(135deg, #fff0dc, #fde8c8);
+}
+
+/* Frosting on top of each layer — white drip effect */
+.cake-layer::before {
+  content: ""; /* ::before is a pseudo-element — adds a visual element
+                   without adding HTML. content: '' is required for it
+                   to render even if empty. */
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%); /* centers it horizontally */
+  width: 95%;
+  height: 16px;
+  background: var(--color-white);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Candles row sits above the cake */
+.candles-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 4px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Individual candle — JS creates these dynamically */
+.candle {
+  width: 14px;
+  height: 40px;
+  background: linear-gradient(to bottom, var(--color-accent), #f5a0b0);
+  border-radius: var(--radius-sm) var(--radius-sm) 2px 2px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+/* The flame on top of each candle */
+.flame {
+  position: absolute;
+  top: -18px;
+  width: 12px;
+  height: 18px;
+  background: radial-gradient(ellipse at bottom, #ffe066, #ff9800, #ff5722);
+  /* radial-gradient: circular/elliptical gradient.
+     "at bottom" = the center of the gradient starts at the bottom.
+     This creates a realistic flame color from yellow (center) to orange/red. */
+  border-radius: 50% 50% 30% 30%;
+  /* Different radii on each corner creates the teardrop flame shape.
+     Syntax: top-left top-right bottom-right bottom-left */
+  animation: flicker 0.8s ease-in-out infinite alternate;
+  /* alternate = plays forward then backward = continuous flicker */
+}
+
+/* Flame flicker animation */
+@keyframes flicker {
+  from {
+    transform: scaleX(1) rotate(-3deg);
+    opacity: 1;
+  }
+  to {
+    transform: scaleX(0.85) rotate(3deg);
+    opacity: 0.85;
+  }
+}
+
+/* Volume bar for mic feedback */
+.volume-bar-wrapper {
+  width: 200px;
+  height: 12px;
+  background: var(--color-secondary);
+  border-radius: var(--radius-pill);
+  margin: var(--space-sm) auto 0;
+  overflow: hidden;
+}
+
+.volume-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+  transition: width 0.1s ease; /* fast update = responsive feel */
+}
+
+/* Cut prompt message */
+.cut-prompt {
+  margin-top: var(--space-md);
+  font-size: 1.1rem;
+  color: var(--color-primary-dark);
+  font-weight: 700;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ============================================
+   PHOTO BOOTH
+   ============================================ */
+.booth-wrapper {
+  position: relative;
+  width: 320px;
+  height: 240px;
+  margin: var(--space-md) auto;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+/* Video and canvas are stacked exactly on top of each other */
+#booth-video,
+#booth-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-md);
+}
+
+/* Canvas is on top (higher z-index) so overlays appear above video */
+#booth-canvas {
+  z-index: 1;
+}
+
+.booth-controls {
+  margin: var(--space-sm) 0;
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* The captured selfie result */
+.selfie-result {
+  margin-top: var(--space-md);
+}
+
+.selfie-result img {
+  width: 200px;
+  height: 150px;
+  object-fit: cover; /* crops to fill the box without stretching */
+  border-radius: var(--radius-md);
+  margin: var(--space-sm) auto;
+  box-shadow: var(--shadow-card);
+  border: 4px solid var(--color-primary);
+}
+
+/* ============================================
+   VOICE SECTION
+   ============================================ */
+.voice-transcript {
+  font-size: 1.2rem;
+  color: var(--color-text-light);
+  min-height: 2rem;
+  margin: var(--space-sm) 0;
+  font-style: italic;
+}
+
+.voice-response {
+  font-size: 1.3rem;
+  color: var(--color-primary-dark);
+  font-weight: 700;
+  min-height: 2rem;
+  margin: var(--space-sm) 0;
+}
+
+/* ============================================
+   VISUALIZER
+   ============================================ */
+#visualizer-canvas {
+  display: block;
+  width: 100%;
+  max-width: 500px;
+  height: 120px;
+  margin: var(--space-md) auto;
+  border-radius: var(--radius-md);
+  background: var(--color-secondary);
+}
+
+/* ============================================
+   FINAL SECTION
+   ============================================ */
+.final-selfie {
+  width: 180px;
+  height: 135px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  margin: var(--space-md) auto;
+  border: 4px solid var(--color-primary);
+  box-shadow: var(--shadow-card);
+  /* Hide if no selfie was taken */
+  display: none;
+}
+
+.final-selfie.has-photo {
+  display: block;
+}
+
+.final-message {
+  background: var(--color-white);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-card);
+  margin: var(--space-md) 0;
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--color-text);
+  text-align: left;
+}
+
+/* ============================================
+   UTILITY / HELPER CLASSES
+   Small reusable classes you can add to any element
+   ============================================ */
+
+/* Fade in animation — we'll trigger this via JS */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.6s var(--transition-smooth) both;
+}
+
+/* Hidden utility — JS toggles this */
+.hidden {
+  display: none !important;
+}
+
+/* ============================================
+   RESPONSIVE — MOBILE
+   @media queries apply styles only when the
+   screen matches the condition.
+   max-width: 480px = "if screen is 480px or smaller"
+   ============================================ */
+@media (max-width: 480px) {
+  :root {
+    /* Scale down the cake on small screens */
+    --cake-bottom-w: 200px;
+    --cake-middle-w: 160px;
+    --cake-top-w: 110px;
+    --cake-layer-h: 48px;
+  }
+
+  .booth-wrapper {
+    width: 280px;
+    height: 210px;
+  }
+
+  .section-content {
+    padding: var(--space-md);
+  }
+}
