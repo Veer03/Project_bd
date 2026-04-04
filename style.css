@@ -1,102 +1,53 @@
-/* ============================================
-   CSS CUSTOM PROPERTIES (VARIABLES)
-   Your entire design system lives here.
-   Change one value = changes the whole site.
-   ============================================ */
+/* ════════════════════════════════════════════
+   CSS CUSTOM PROPERTIES — edit here to retheme
+   ════════════════════════════════════════════ */
 :root {
-  /* --- Brand Colors --- */
-  --color-bg: #f0faf4; /* very light mint, the page background */
-  --color-primary: #7ec8a0; /* pistachio green, main buttons/accents */
-  --color-primary-dark: #5aab82; /* darker shade for hover states */
-  --color-secondary: #c8e6d4; /* lighter green for subtle backgrounds */
-  --color-accent: #f9c6d0; /* soft pink — contrast pop (candles, hearts) */
-  --color-text: #2d4a3e; /* dark green for body text */
-  --color-text-light: #6b8f7e; /* muted green for hints/subtitles */
-  --color-white: #ffffff;
+  --bg: #f2faf5;
+  --bg-2: #e8f5ed;
+  --green-light: #b8e0c8;
+  --green-mid: #7ec8a0;
+  --green-dark: #4a9e72;
+  --green-deep: #2d6a4f;
+  --pink-soft: #fce4ec;
+  --pink-mid: #f8bbd0;
+  --gold: #f9c74f;
+  --white: #ffffff;
+  --text: #1a3a2a;
+  --text-muted: #5a8a6a;
 
-  /* --- Typography ---
-     We load these from Google Fonts (we'll add the <link> next).
-     Font stacks always end with a generic fallback (serif, sans-serif)
-     in case the font fails to load.
-  */
-  --font-display: "Playfair Display", Georgia, serif; /* headings */
-  --font-body: "Lato", Arial, sans-serif; /* body text */
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-body: "DM Sans", sans-serif;
 
-  /* --- Spacing ---
-     Using a consistent scale means spacing feels harmonious.
-     All spacing is multiples of 8px (a common design system rule).
-  */
-  --space-xs: 0.5rem; /*  8px */
-  --space-sm: 1rem; /* 16px */
-  --space-md: 1.5rem; /* 24px */
-  --space-lg: 2rem; /* 32px */
-  --space-xl: 3rem; /* 48px */
+  --radius-sm: 10px;
+  --radius-md: 20px;
+  --radius-lg: 36px;
+  --radius-pill: 999px;
 
-  /* --- Border Radius --- */
-  --radius-sm: 8px;
-  --radius-md: 16px;
-  --radius-lg: 32px;
-  --radius-pill: 999px; /* makes any element a pill/capsule shape */
+  --shadow: 0 8px 40px rgba(74, 158, 114, 0.15);
+  --shadow-lg: 0 20px 60px rgba(45, 106, 79, 0.2);
 
-  /* --- Shadows ---
-     box-shadow syntax: x-offset y-offset blur spread color
-  */
-  --shadow-soft: 0 4px 24px rgba(126, 200, 160, 0.18);
-  --shadow-card: 0 8px 40px rgba(45, 74, 62, 0.1);
-
-  /* --- Transitions ---
-     Reusable animation timing so all interactions feel consistent.
-  */
-  --transition-fast: 0.2s ease;
-  --transition-smooth: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-
-  /* --- Cake Config ---
-     Sizes for the CSS cake. Changing these redraws the whole cake.
-  */
-  --cake-bottom-w: 260px;
-  --cake-middle-w: 200px;
-  --cake-top-w: 140px;
-  --cake-layer-h: 60px;
+  --transition: 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-sm: 0.2s ease;
 }
 
-/* ============================================
-   GOOGLE FONTS IMPORT
-   Must come before any rule that uses the fonts.
-   @import pulls in external stylesheets.
-   ============================================ */
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap");
-
-/* ============================================
-   CSS RESET
-   Browsers have their own default styles that
-   differ between Chrome, Firefox, Safari etc.
-   A reset removes those defaults so we start
-   from a consistent baseline.
-   ============================================ */
+/* ════════════════════════════════════════════
+   RESET
+   ════════════════════════════════════════════ */
 *,
 *::before,
 *::after {
-  /* box-sizing: border-box means padding and border are INCLUDED
-     in an element's width/height. Without this, a 200px div with
-     20px padding would actually be 240px wide — confusing. */
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
-
-/* Remove default list bullets/numbers */
 ul,
 ol {
   list-style: none;
 }
-
-/* Make images behave like block elements and scale correctly */
 img {
   display: block;
   max-width: 100%;
 }
-
-/* Remove default button styles so we can style from scratch */
 button {
   border: none;
   background: none;
@@ -104,497 +55,882 @@ button {
   font-family: var(--font-body);
 }
 
-/* ============================================
-   BASE STYLES
-   ============================================ */
 html {
-  /* font-size: 16px is the browser default.
-     Setting it explicitly on html means 1rem = 16px everywhere.
-     All our spacing variables use rem, so this is the base. */
   font-size: 16px;
   scroll-behavior: smooth;
 }
-
 body {
   font-family: var(--font-body);
-  background-color: var(--color-bg);
-  color: var(--color-text);
+  background: var(--bg);
+  color: var(--text);
   min-height: 100vh;
-
-  /* We want sections to stack vertically and fill the screen */
-  display: flex;
-  flex-direction: column;
+  overflow-x: hidden;
 }
 
-/* ============================================
+/* ════════════════════════════════════════════
+   BACKGROUND BLOBS — decorative soft shapes
+   ════════════════════════════════════════════ */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.45;
+}
+.blob-1 {
+  width: 420px;
+  height: 420px;
+  background: var(--green-light);
+  top: -100px;
+  right: -100px;
+}
+.blob-2 {
+  width: 320px;
+  height: 320px;
+  background: var(--pink-soft);
+  bottom: -80px;
+  left: -80px;
+}
+.blob-3 {
+  width: 360px;
+  height: 360px;
+  background: var(--green-light);
+  top: 50%;
+  left: -120px;
+  transform: translateY(-50%);
+}
+.blob-4 {
+  width: 300px;
+  height: 300px;
+  background: var(--pink-mid);
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* ════════════════════════════════════════════
    SECTION SYSTEM
-   The journey engine. Only .active sections
-   are visible. JS adds/removes .active.
-   ============================================ */
+   ════════════════════════════════════════════ */
 .section {
-  /* Each section fills the full viewport height */
   min-height: 100vh;
   width: 100%;
-
-  /* Center everything inside each section */
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
-
-  /* Hidden by default. position: relative needed so the particle
-     canvas (position: absolute) stays inside this section. */
-  display: none;
   position: relative;
   overflow: hidden;
+  padding: 2rem 1rem;
 }
-
-/* The ONE section that should be visible */
 .section.active {
   display: flex;
 }
 
-/* The content box inside each section.
-   z-index: 1 puts it ABOVE the particle canvas (which is z-index: 0) */
 .section-content {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   text-align: center;
-  padding: var(--space-lg);
-  max-width: 680px;
   width: 100%;
+  max-width: 700px;
+  padding: 2rem;
 }
 
-/* ============================================
+/* ════════════════════════════════════════════
    TYPOGRAPHY
-   ============================================ */
+   ════════════════════════════════════════════ */
+.pre-title {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 300;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
 .birthday-title {
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 8vw, 5rem);
-  /* clamp(min, preferred, max) — font scales with viewport but
-     never goes below 2.5rem or above 5rem. Great for responsive design. */
-  color: var(--color-text);
-  line-height: 1.2;
-  margin-bottom: var(--space-md);
+  font-size: clamp(3.5rem, 12vw, 7rem);
+  font-weight: 700;
+  line-height: 0.95;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
 }
 
 .name-highlight {
-  color: var(--color-primary-dark);
-  /* text-decoration: underline with a custom color */
-  text-decoration: underline;
-  text-decoration-color: var(--color-accent);
-  text-underline-offset: 6px; /* gap between text and underline */
+  color: var(--green-dark);
+  font-style: italic;
+  display: block;
 }
 
 .section-title {
   font-family: var(--font-display);
-  font-size: clamp(1.8rem, 5vw, 3rem);
-  color: var(--color-text);
-  margin-bottom: var(--space-sm);
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+  line-height: 1.1;
 }
 
 .subtitle,
 .section-hint {
-  font-size: 1.1rem;
-  color: var(--color-text-light);
-  margin-bottom: var(--space-lg);
-  font-weight: 300;
-}
-
-/* ============================================
-   BUTTONS
-   ============================================ */
-
-/* Primary button — the main call to action */
-.btn-primary {
-  display: inline-block;
-  padding: var(--space-sm) var(--space-xl);
-  background: var(--color-primary);
-  color: var(--color-white);
   font-size: 1rem;
-  font-weight: 700;
+  color: var(--text-muted);
+  font-weight: 300;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+/* ════════════════════════════════════════════
+   BUTTONS
+   ════════════════════════════════════════════ */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 2.2rem;
+  background: var(--green-dark);
+  color: var(--white);
+  font-size: 1rem;
+  font-weight: 500;
   border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 4px 20px rgba(74, 158, 114, 0.4);
   transition:
-    background var(--transition-fast),
-    transform var(--transition-fast),
-    box-shadow var(--transition-fast);
-  margin-top: var(--space-sm);
+    background var(--transition-sm),
+    transform var(--transition-sm),
+    box-shadow var(--transition-sm);
+  margin-top: 0.5rem;
+  letter-spacing: 0.02em;
 }
-
 .btn-primary:hover {
-  background: var(--color-primary-dark);
-  /* translateY(-2px) lifts the button up slightly — classic hover effect */
-  transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(126, 200, 160, 0.35);
+  background: var(--green-deep);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(74, 158, 114, 0.5);
 }
-
 .btn-primary:active {
-  /* Press down on click */
   transform: translateY(0);
 }
 
-/* Secondary button — less emphasis */
 .btn-secondary {
-  display: inline-block;
-  padding: var(--space-xs) var(--space-lg);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.8rem;
   background: transparent;
-  color: var(--color-primary-dark);
-  font-size: 1rem;
-  font-weight: 700;
-  border: 2px solid var(--color-primary);
+  color: var(--green-dark);
+  font-size: 0.95rem;
+  font-weight: 500;
+  border: 2px solid var(--green-mid);
   border-radius: var(--radius-pill);
-  transition: all var(--transition-fast);
-  margin-top: var(--space-sm);
+  transition: all var(--transition-sm);
+  margin-top: 0.5rem;
 }
-
 .btn-secondary:hover {
-  background: var(--color-secondary);
+  background: var(--bg-2);
   transform: translateY(-2px);
 }
 
-/* Giant mic button for voice section */
-.btn-mic {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  font-size: 2.5rem;
-  box-shadow: var(--shadow-soft);
-  transition: all var(--transition-fast);
-  margin: var(--space-md) auto;
-  display: block;
-}
-
-.btn-mic:hover,
-.btn-mic.listening {
-  background: var(--color-primary-dark);
-  transform: scale(1.1);
-  /* Pulsing glow effect when listening */
-  box-shadow:
-    0 0 0 12px rgba(126, 200, 160, 0.2),
-    0 0 0 24px rgba(126, 200, 160, 0.1);
-}
-
-/* ============================================
-   PARTICLE CANVAS
-   Sits behind section content, fills the section.
-   pointer-events: none = mouse clicks pass through
-   it to elements behind/above it.
-   ============================================ */
+/* ════════════════════════════════════════════
+   PARTICLE CANVAS — landing section
+   ════════════════════════════════════════════ */
 #particle-canvas {
   position: absolute;
-  top: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  /* pointer-events ON so clicks register for pop effect */
+  pointer-events: auto;
+}
+
+/* Content must be above canvas */
+.landing-content {
+  z-index: 3;
+}
+
+/* ════════════════════════════════════════════
+   CAKE SECTION
+   ════════════════════════════════════════════ */
+.cake-scene {
+  margin: 1.5rem auto;
+  display: flex;
+  justify-content: center;
+}
+
+.cake-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: transform 0.3s ease;
+}
+.cake-wrapper:hover {
+  transform: scale(1.02);
+}
+
+.candles-row {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin-bottom: 6px;
+  z-index: 3;
+  position: relative;
+}
+
+.candle {
+  width: 13px;
+  height: 44px;
+  border-radius: 6px 6px 3px 3px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+.candle:nth-child(odd) {
+  background: linear-gradient(to bottom, #f9c6d0, #f5a0b0);
+}
+.candle:nth-child(even) {
+  background: linear-gradient(to bottom, #b8e0c8, #7ec8a0);
+}
+
+.flame {
+  position: absolute;
+  top: -20px;
+  width: 13px;
+  height: 20px;
+  background: radial-gradient(
+    ellipse at bottom,
+    #fffde7 20%,
+    #ffca28 50%,
+    #ff7043 100%
+  );
+  border-radius: 50% 50% 35% 35%;
+  animation: flicker 0.7s ease-in-out infinite alternate;
+  transform-origin: bottom center;
+  box-shadow:
+    0 0 8px rgba(255, 200, 40, 0.8),
+    0 0 20px rgba(255, 120, 50, 0.4);
+}
+.flame.out {
+  /* Smoke effect when blown out */
+  background: rgba(180, 180, 180, 0.4);
+  box-shadow: none;
+  animation: smokeUp 0.8s ease forwards;
+}
+
+@keyframes flicker {
+  from {
+    transform: scaleX(1) rotate(-4deg);
+    opacity: 1;
+  }
+  to {
+    transform: scaleX(0.82) rotate(4deg);
+    opacity: 0.85;
+  }
+}
+@keyframes smokeUp {
+  0% {
+    opacity: 0.6;
+    transform: translateY(0) scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) scaleX(2);
+  }
+}
+
+.cake-layer {
+  position: relative;
+  border-radius: 14px 14px 6px 6px;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.cake-layer::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
   left: 0;
+  right: 0;
+  height: 30%;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 0 0 6px 6px;
+}
+
+.cake-layer--top {
+  width: 140px;
+  height: 55px;
+  background: linear-gradient(135deg, #fff8e1, #ffe082);
+}
+.cake-layer--middle {
+  width: 200px;
+  height: 60px;
+  background: linear-gradient(135deg, #fce4ec, #f8bbd0);
+}
+.cake-layer--bottom {
+  width: 260px;
+  height: 65px;
+  background: linear-gradient(135deg, #e8f5e9, #a5d6a7);
+}
+
+.frosting-top {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 130px;
+  height: 18px;
+  background: var(--white);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+.frosting-top::before,
+.frosting-top::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  width: 14px;
+  height: 14px;
+  background: var(--white);
+  border-radius: 50%;
+}
+.frosting-top::before {
+  left: 10px;
+}
+.frosting-top::after {
+  right: 10px;
+}
+
+.cake-deco {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  font-size: 0.75rem;
+  letter-spacing: 4px;
+}
+
+.cake-plate {
+  width: 290px;
+  height: 14px;
+  background: linear-gradient(to bottom, #f0f0f0, #e0e0e0);
+  border-radius: 0 0 var(--radius-pill) var(--radius-pill);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Slice animation */
+.cake-wrapper.sliced .cake-layer {
+  transform: scaleY(0.92);
+}
+.cake-wrapper.sliced .cake-layer--bottom {
+  transform: scaleY(0.88) translateY(4px);
+}
+
+/* Mic UI */
+.mic-ui {
+  margin: 1.5rem auto;
+}
+
+.btn-mic-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.85rem 2rem;
+  background: var(--white);
+  border: 2px solid var(--green-mid);
+  border-radius: var(--radius-pill);
+  font-size: 0.95rem;
+  color: var(--green-dark);
+  font-weight: 500;
+  box-shadow: var(--shadow);
+  transition: all var(--transition-sm);
+}
+.btn-mic-start:hover {
+  background: var(--bg-2);
+  transform: translateY(-2px);
+}
+.mic-icon {
+  font-size: 1.3rem;
+}
+
+.volume-wrap {
+  text-align: center;
+}
+.volume-label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+.volume-track {
+  width: 220px;
+  height: 14px;
+  background: var(--bg-2);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  margin: 0 auto 0.8rem;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+.volume-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(to right, var(--green-mid), var(--green-dark));
+  border-radius: var(--radius-pill);
+  transition: width 0.08s ease;
+}
+.candle-count {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.cut-prompt {
+  margin-top: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  display: inline-block;
+}
+.cut-prompt p:first-child {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--green-deep);
+  margin-bottom: 0.3rem;
+}
+.cut-sub {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.wish-done {
+  margin-top: 1.5rem;
+}
+.wish-text {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--green-dark);
+  font-style: italic;
+  margin-bottom: 1rem;
+}
+
+/* ════════════════════════════════════════════
+   PHOTO BOOTH
+   ════════════════════════════════════════════ */
+.booth-frame {
+  display: inline-block;
+  position: relative;
+}
+
+.booth-wrapper {
+  position: relative;
+  width: 340px;
+  height: 255px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  border: 4px solid var(--white);
+  margin: 0 auto 0.8rem;
+  background: var(--bg-2);
+}
+
+.booth-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 3rem;
+  gap: 0.5rem;
+  z-index: 1;
+}
+.booth-placeholder p {
+  font-size: 0.9rem;
+}
+
+#booth-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* mirror like a real mirror */
+  display: none;
+}
+#booth-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.booth-overlay-ui {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+.booth-sticker {
+  position: absolute;
+  font-size: 1.6rem;
+  opacity: 0.9;
+}
+.booth-sticker--tl {
+  top: 8px;
+  left: 10px;
+}
+.booth-sticker--tr {
+  top: 8px;
+  right: 10px;
+}
+.booth-sticker--bl {
+  bottom: 8px;
+  left: 10px;
+}
+.booth-sticker--br {
+  bottom: 8px;
+  right: 10px;
+}
+
+/* CSS filters for the webcam */
+#booth-video.filter-warm {
+  filter: sepia(0.35) saturate(1.4) brightness(1.05);
+}
+#booth-video.filter-cool {
+  filter: hue-rotate(20deg) saturate(0.85) brightness(1.05);
+}
+#booth-video.filter-dreamy {
+  filter: blur(0.5px) brightness(1.1) saturate(1.2) contrast(0.9);
+}
+
+.booth-filter-strip {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+.filter-btn {
+  padding: 0.3rem 0.9rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: var(--white);
+  color: var(--text-muted);
+  border: 2px solid transparent;
+  transition: all var(--transition-sm);
+}
+.filter-btn.active,
+.filter-btn:hover {
+  border-color: var(--green-mid);
+  color: var(--green-dark);
+}
+
+.booth-controls {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.selfie-result {
+  margin-top: 1.5rem;
+}
+.selfie-label {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-bottom: 0.8rem;
+}
+.selfie-frame {
+  width: 200px;
+  height: 150px;
+  margin: 0 auto 1rem;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 4px solid var(--green-mid);
+  box-shadow: var(--shadow);
+}
+.selfie-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ════════════════════════════════════════════
+   VOICE SECTION
+   ════════════════════════════════════════════ */
+.command-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+.chip {
+  padding: 0.4rem 1rem;
+  background: var(--white);
+  border: 2px solid var(--green-light);
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.btn-mic-big {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--green-mid), var(--green-dark));
+  font-size: 2.8rem;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  position: relative;
+  transition:
+    transform var(--transition-sm),
+    box-shadow var(--transition-sm);
+}
+.btn-mic-big:hover {
+  transform: scale(1.06);
+}
+.btn-mic-big.listening {
+  animation: micPulse 1.2s ease-in-out infinite;
+}
+
+.mic-pulse {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 3px solid var(--green-mid);
+  opacity: 0;
+}
+.btn-mic-big.listening .mic-pulse {
+  animation: pulsering 1.2s ease-out infinite;
+}
+
+@keyframes pulsering {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+@keyframes micPulse {
+  0%,
+  100% {
+    box-shadow: var(--shadow-lg);
+  }
+  50% {
+    box-shadow:
+      0 0 0 16px rgba(126, 200, 160, 0.2),
+      var(--shadow-lg);
+  }
+}
+
+.voice-feedback {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 1.2rem 1.5rem;
+  box-shadow: var(--shadow);
+  margin: 1rem auto;
+  max-width: 420px;
+}
+.voice-heard {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+.voice-response {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--green-dark);
+  font-family: var(--font-display);
+  font-style: italic;
+}
+
+/* ════════════════════════════════════════════
+   VISUALIZER
+   ════════════════════════════════════════════ */
+.visualizer-wrap {
+  position: relative;
+  max-width: 520px;
+  margin: 1.5rem auto;
+}
+#visualizer-canvas {
+  display: block;
+  width: 100%;
+  height: 130px;
+  border-radius: var(--radius-md);
+  background: var(--white);
+  box-shadow: var(--shadow);
+}
+.viz-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 40px rgba(126, 200, 160, 0);
+  transition: box-shadow 0.5s ease;
+  pointer-events: none;
+}
+.viz-glow.active {
+  box-shadow: 0 0 40px rgba(126, 200, 160, 0.4);
+}
+
+.player-controls {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+.btn-play {
+  padding: 0.75rem 2rem;
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  border: 2px solid var(--green-mid);
+  color: var(--green-dark);
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all var(--transition-sm);
+  box-shadow: var(--shadow);
+}
+.btn-play:hover {
+  background: var(--bg-2);
+  transform: translateY(-2px);
+}
+
+/* ════════════════════════════════════════════
+   FINAL SECTION
+   ════════════════════════════════════════════ */
+#final-canvas {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
   z-index: 0;
 }
 
-/* ============================================
-   CAKE SECTION
-   ============================================ */
-.cake-wrapper {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: var(--space-lg) auto;
-  cursor: pointer; /* shows hand cursor for click-to-cut */
-}
-
-/* All three layers share these base styles */
-.cake-layer {
-  height: var(--cake-layer-h);
-  border-radius: var(--radius-md) var(--radius-md) var(--radius-sm)
-    var(--radius-sm);
-  position: relative;
-  transition: transform var(--transition-smooth);
-}
-
-.cake-layer--bottom {
-  width: var(--cake-bottom-w);
-  background: linear-gradient(135deg, #f9d5a7, #f5c07a);
-  /* linear-gradient creates a smooth color transition.
-     135deg = diagonal direction.
-     These are warm golden tones for the cake sponge. */
-}
-
-.cake-layer--middle {
-  width: var(--cake-middle-w);
-  background: linear-gradient(135deg, #fde8c8, #f9d5a7);
-}
-
-.cake-layer--top {
-  width: var(--cake-top-w);
-  background: linear-gradient(135deg, #fff0dc, #fde8c8);
-}
-
-/* Frosting on top of each layer — white drip effect */
-.cake-layer::before {
-  content: ""; /* ::before is a pseudo-element — adds a visual element
-                   without adding HTML. content: '' is required for it
-                   to render even if empty. */
-  position: absolute;
-  top: -8px;
-  left: 50%;
-  transform: translateX(-50%); /* centers it horizontally */
-  width: 95%;
-  height: 16px;
-  background: var(--color-white);
-  border-radius: var(--radius-pill);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-/* Candles row sits above the cake */
-.candles-row {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  margin-bottom: 4px;
-  position: relative;
+.final-content {
   z-index: 2;
 }
 
-/* Individual candle — JS creates these dynamically */
-.candle {
-  width: 14px;
-  height: 40px;
-  background: linear-gradient(to bottom, var(--color-accent), #f5a0b0);
-  border-radius: var(--radius-sm) var(--radius-sm) 2px 2px;
-  position: relative;
+.final-title {
+  font-style: italic;
+  color: var(--green-dark);
+  margin-bottom: 2rem;
+}
+
+.final-layout {
   display: flex;
-  justify-content: center;
-}
-
-/* The flame on top of each candle */
-.flame {
-  position: absolute;
-  top: -18px;
-  width: 12px;
-  height: 18px;
-  background: radial-gradient(ellipse at bottom, #ffe066, #ff9800, #ff5722);
-  /* radial-gradient: circular/elliptical gradient.
-     "at bottom" = the center of the gradient starts at the bottom.
-     This creates a realistic flame color from yellow (center) to orange/red. */
-  border-radius: 50% 50% 30% 30%;
-  /* Different radii on each corner creates the teardrop flame shape.
-     Syntax: top-left top-right bottom-right bottom-left */
-  animation: flicker 0.8s ease-in-out infinite alternate;
-  /* alternate = plays forward then backward = continuous flicker */
-}
-
-/* Flame flicker animation */
-@keyframes flicker {
-  from {
-    transform: scaleX(1) rotate(-3deg);
-    opacity: 1;
-  }
-  to {
-    transform: scaleX(0.85) rotate(3deg);
-    opacity: 0.85;
-  }
-}
-
-/* Volume bar for mic feedback */
-.volume-bar-wrapper {
-  width: 200px;
-  height: 12px;
-  background: var(--color-secondary);
-  border-radius: var(--radius-pill);
-  margin: var(--space-sm) auto 0;
-  overflow: hidden;
-}
-
-.volume-bar {
-  height: 100%;
-  width: 0%;
-  background: var(--color-primary);
-  border-radius: var(--radius-pill);
-  transition: width 0.1s ease; /* fast update = responsive feel */
-}
-
-/* Cut prompt message */
-.cut-prompt {
-  margin-top: var(--space-md);
-  font-size: 1.1rem;
-  color: var(--color-primary-dark);
-  font-weight: 700;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-/* ============================================
-   PHOTO BOOTH
-   ============================================ */
-.booth-wrapper {
-  position: relative;
-  width: 320px;
-  height: 240px;
-  margin: var(--space-md) auto;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  box-shadow: var(--shadow-card);
-}
-
-/* Video and canvas are stacked exactly on top of each other */
-#booth-video,
-#booth-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: var(--radius-md);
-}
-
-/* Canvas is on top (higher z-index) so overlays appear above video */
-#booth-canvas {
-  z-index: 1;
-}
-
-.booth-controls {
-  margin: var(--space-sm) 0;
-  display: flex;
-  gap: var(--space-sm);
+  gap: 2rem;
+  align-items: flex-start;
   justify-content: center;
   flex-wrap: wrap;
+  margin-bottom: 2rem;
 }
 
-/* The captured selfie result */
-.selfie-result {
-  margin-top: var(--space-md);
-}
-
-.selfie-result img {
-  width: 200px;
-  height: 150px;
-  object-fit: cover; /* crops to fill the box without stretching */
-  border-radius: var(--radius-md);
-  margin: var(--space-sm) auto;
-  box-shadow: var(--shadow-card);
-  border: 4px solid var(--color-primary);
-}
-
-/* ============================================
-   VOICE SECTION
-   ============================================ */
-.voice-transcript {
-  font-size: 1.2rem;
-  color: var(--color-text-light);
-  min-height: 2rem;
-  margin: var(--space-sm) 0;
-  font-style: italic;
-}
-
-.voice-response {
-  font-size: 1.3rem;
-  color: var(--color-primary-dark);
-  font-weight: 700;
-  min-height: 2rem;
-  margin: var(--space-sm) 0;
-}
-
-/* ============================================
-   VISUALIZER
-   ============================================ */
-#visualizer-canvas {
-  display: block;
-  width: 100%;
-  max-width: 500px;
+.final-selfie-wrap {
+  width: 160px;
   height: 120px;
-  margin: var(--space-md) auto;
   border-radius: var(--radius-md);
-  background: var(--color-secondary);
+  overflow: hidden;
+  border: 4px solid var(--green-mid);
+  box-shadow: var(--shadow-lg);
+  flex-shrink: 0;
 }
-
-/* ============================================
-   FINAL SECTION
-   ============================================ */
 .final-selfie {
-  width: 180px;
-  height: 135px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border-radius: var(--radius-md);
-  margin: var(--space-md) auto;
-  border: 4px solid var(--color-primary);
-  box-shadow: var(--shadow-card);
-  /* Hide if no selfie was taken */
-  display: none;
-}
-
-.final-selfie.has-photo {
-  display: block;
 }
 
 .final-message {
-  background: var(--color-white);
+  background: var(--white);
   border-radius: var(--radius-md);
-  padding: var(--space-lg);
-  box-shadow: var(--shadow-card);
-  margin: var(--space-md) 0;
-  font-size: 1.1rem;
-  line-height: 1.8;
-  color: var(--color-text);
+  padding: 1.5rem 2rem;
+  box-shadow: var(--shadow);
   text-align: left;
+  max-width: 380px;
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: var(--text);
+  border-left: 4px solid var(--green-mid);
+}
+.final-message p + p {
+  margin-top: 0.8rem;
 }
 
-/* ============================================
-   UTILITY / HELPER CLASSES
-   Small reusable classes you can add to any element
-   ============================================ */
+.final-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.btn-confetti {
+  padding: 0.8rem 1.8rem;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--green-mid), var(--green-dark));
+  color: var(--white);
+  font-size: 0.95rem;
+  font-weight: 500;
+  box-shadow: var(--shadow);
+  transition: all var(--transition-sm);
+}
+.btn-confetti:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
 
-/* Fade in animation — we'll trigger this via JS */
+/* ════════════════════════════════════════════
+   ANIMATIONS
+   ════════════════════════════════════════════ */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(24px);
+    transform: translateY(28px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
-
 .fade-in-up {
-  animation: fadeInUp 0.6s var(--transition-smooth) both;
+  animation: fadeInUp 0.7s cubic-bezier(0.34, 1.2, 0.64, 1) both;
 }
 
-/* Hidden utility — JS toggles this */
-.hidden {
-  display: none !important;
-}
-
-/* ============================================
-   RESPONSIVE — MOBILE
-   @media queries apply styles only when the
-   screen matches the condition.
-   max-width: 480px = "if screen is 480px or smaller"
-   ============================================ */
-@media (max-width: 480px) {
-  :root {
-    /* Scale down the cake on small screens */
-    --cake-bottom-w: 200px;
-    --cake-middle-w: 160px;
-    --cake-top-w: 110px;
-    --cake-layer-h: 48px;
+/* ════════════════════════════════════════════
+   RESPONSIVE
+   ════════════════════════════════════════════ */
+@media (max-width: 500px) {
+  .birthday-title {
+    font-size: clamp(3rem, 14vw, 5rem);
   }
-
   .booth-wrapper {
-    width: 280px;
-    height: 210px;
+    width: 290px;
+    height: 220px;
   }
-
-  .section-content {
-    padding: var(--space-md);
+  .final-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+  .final-selfie-wrap {
+    width: 140px;
+    height: 105px;
+  }
+  .cake-layer--bottom {
+    width: 220px;
+  }
+  .cake-layer--middle {
+    width: 170px;
+  }
+  .cake-layer--top {
+    width: 120px;
   }
 }

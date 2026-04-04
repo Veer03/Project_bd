@@ -4,213 +4,264 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Happy Birthday Simran 🎂</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="style.css" />
   </head>
-
   <body>
+    <!-- ═══════════════════════════════════════
+       SECTION 1 — LANDING
+  ═══════════════════════════════════════ -->
     <section class="section active" data-section="1" id="landing">
       <canvas id="particle-canvas"></canvas>
 
-      <div class="section-content">
+      <!-- decorative blobs -->
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+
+      <div class="section-content landing-content">
+        <p class="pre-title">a little something for you</p>
         <h1 class="birthday-title">
-          Happy Birthday <span class="name-highlight" data-name>Simran</span> 🎂
+          Happy<br />
+          Birthday<br />
+          <span class="name-highlight" data-name>Simran</span>
         </h1>
-
-        <p class="subtitle">A little something I made for you ✨</p>
-
+        <p class="subtitle">Made with way too much love ✨</p>
         <button class="btn-primary" id="btn-start">
-          Open Your Surprise 🎁
+          <span>Open Your Surprise</span>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
         </button>
       </div>
     </section>
 
-    <!-- 
-      SECTION 2: CAKE + CANDLE BLOWING
-      CSS-drawn cake. Mic detects blowing. Candles go out.
-      Then click-to-cut reveals a message.
-      
-      No "active" class = hidden on load.
-    -->
+    <!-- ═══════════════════════════════════════
+       SECTION 2 — CAKE + MIC BLOWING
+  ═══════════════════════════════════════ -->
     <section class="section" data-section="2" id="cake-section">
+      <div class="blob blob-3"></div>
       <div class="section-content">
+        <p class="pre-title">close your eyes first...</p>
         <h2 class="section-title">Make a Wish 🕯️</h2>
         <p class="section-hint">Blow into your mic to blow out the candles</p>
 
-        <div class="cake-wrapper" id="cake-wrapper">
-          <!-- Candles sit on top of the cake -->
-          <div class="candles-row" id="candles-row">
-            <!-- Placeholder so you can see the structure: -->
-            <!-- <div class="candle"><div class="flame"></div></div> -->
-          </div>
-
-          <!-- Cake layers (bottom to top = biggest to smallest) -->
-          <div class="cake-layer cake-layer--top"></div>
-          <div class="cake-layer cake-layer--middle"></div>
-          <div class="cake-layer cake-layer--bottom"></div>
-
-          <!-- Decorative frosting drips -->
-          <div class="frosting-drip" id="frosting"></div>
-        </div>
-
-        <!-- 
-          Mic status indicator — shows whether mic is active,
-          and a live volume bar so Simran can see when she's blowing
-        -->
-        <div class="mic-status" id="mic-status">
-          <button class="btn-secondary" id="btn-start-mic">🎤 Start Mic</button>
-          <div class="volume-bar-wrapper" id="volume-bar-wrapper" hidden>
-            <div class="volume-bar" id="volume-bar"></div>
+        <div class="cake-scene">
+          <div class="cake-wrapper" id="cake-wrapper">
+            <div class="candles-row" id="candles-row"></div>
+            <div class="cake-layer cake-layer--top">
+              <div class="frosting-top"></div>
+              <div class="cake-deco">🌸 🌿 🌸</div>
+            </div>
+            <div class="cake-layer cake-layer--middle"></div>
+            <div class="cake-layer cake-layer--bottom"></div>
+            <div class="cake-plate"></div>
           </div>
         </div>
 
-        <!-- Hidden until all candles are blown out -->
-        <div class="cut-prompt" id="cut-prompt" hidden>
-          <p>Now click the cake to cut it! 🔪</p>
+        <div class="mic-ui" id="mic-ui">
+          <button class="btn-mic-start" id="btn-start-mic">
+            <span class="mic-icon">🎤</span>
+            <span>Tap to start mic</span>
+          </button>
+          <div class="volume-wrap" id="volume-wrap" style="display: none">
+            <div class="volume-label">Blow! 💨</div>
+            <div class="volume-track">
+              <div class="volume-fill" id="volume-bar"></div>
+            </div>
+            <div class="candle-count" id="candle-count"></div>
+          </div>
+        </div>
+
+        <div class="cut-prompt" id="cut-prompt" style="display: none">
+          <p>🔪 Now click the cake to slice it!</p>
+          <p class="cut-sub">Click <span id="cuts-left">5</span> times</p>
+        </div>
+
+        <div class="wish-done" id="wish-done" style="display: none">
+          <p class="wish-text">✨ Your wish is on its way ✨</p>
+          <button class="btn-primary" id="btn-to-booth">Next →</button>
         </div>
       </div>
     </section>
 
-    <!-- 
-      SECTION 3: PHOTO BOOTH
-      Webcam feed with canvas overlay (hats, sparkles).
-      Capture button saves the selfie.
-    -->
+    <!-- ═══════════════════════════════════════
+       SECTION 3 — PHOTO BOOTH
+  ═══════════════════════════════════════ -->
     <section class="section" data-section="3" id="booth-section">
+      <div class="blob blob-4"></div>
       <div class="section-content">
-        <h2 class="section-title">Photo Booth 📸</h2>
-        <p class="section-hint">Strike a pose!</p>
+        <p class="pre-title">say cheese 📸</p>
+        <h2 class="section-title">Birthday Booth</h2>
+        <p class="section-hint">Strike your best pose, birthday girl!</p>
 
-        <!-- 
-          The booth is two layers stacked:
-          1. <video> shows the live webcam feed
-          2. <canvas> sits on top with the fun overlays drawn on it
-          They're the same size and positioned on top of each other.
-        -->
-        <div class="booth-wrapper">
-          <video id="booth-video" autoplay playsinline muted></video>
-          <canvas id="booth-canvas"></canvas>
+        <div class="booth-frame">
+          <div class="booth-wrapper" id="booth-wrapper">
+            <div class="booth-placeholder" id="booth-placeholder">
+              <span>📷</span>
+              <p>Camera off</p>
+            </div>
+            <video id="booth-video" autoplay playsinline muted></video>
+            <canvas id="booth-canvas"></canvas>
+            <div class="booth-overlay-ui">
+              <div class="booth-sticker booth-sticker--tl">🎂</div>
+              <div class="booth-sticker booth-sticker--tr">✨</div>
+              <div class="booth-sticker booth-sticker--bl">🌸</div>
+              <div class="booth-sticker booth-sticker--br">💚</div>
+            </div>
+          </div>
+          <div class="booth-filter-strip" id="filter-strip">
+            <button class="filter-btn active" data-filter="none">Normal</button>
+            <button class="filter-btn" data-filter="warm">Warm</button>
+            <button class="filter-btn" data-filter="cool">Cool</button>
+            <button class="filter-btn" data-filter="dreamy">Dreamy</button>
+          </div>
         </div>
 
         <div class="booth-controls">
           <button class="btn-secondary" id="btn-start-cam">
             📷 Start Camera
           </button>
-          <button class="btn-primary" id="btn-capture" hidden>
+          <button class="btn-primary" id="btn-capture" style="display: none">
             ✨ Take Selfie!
           </button>
         </div>
 
-        <!-- Captured selfie shown here after the shot -->
-        <div class="selfie-result" id="selfie-result" hidden>
-          <p>Your birthday selfie 🎉</p>
-          <img id="selfie-img" alt="Your selfie" />
+        <div class="selfie-result" id="selfie-result" style="display: none">
+          <p class="selfie-label">Your selfie 🎉</p>
+          <div class="selfie-frame">
+            <img id="selfie-img" alt="Birthday selfie" />
+          </div>
           <button class="btn-primary" id="btn-after-booth">Continue →</button>
         </div>
       </div>
     </section>
 
-    <!-- 
-      SECTION 4: VOICE COMMANDS
-      SpeechRecognition listens for commands like
-      "more confetti", "play song", "tell me a reason"
-    -->
+    <!-- ═══════════════════════════════════════
+       SECTION 4 — VOICE COMMANDS
+  ═══════════════════════════════════════ -->
     <section class="section" data-section="4" id="voice-section">
+      <div class="blob blob-1"></div>
       <div class="section-content">
-        <h2 class="section-title">Talk to Me 🎤</h2>
-        <p class="section-hint">
-          Say: "more confetti" · "play song" · "tell me a reason"
-        </p>
+        <p class="pre-title">speak up 🎤</p>
+        <h2 class="section-title">Talk to Me</h2>
+        <p class="section-hint">Press the mic and say a command</p>
 
-        <!-- Big mic button — press and hold to speak -->
-        <button class="btn-mic" id="btn-voice">🎤</button>
-
-        <!-- Shows what was heard -->
-        <p class="voice-transcript" id="voice-transcript">Listening...</p>
-
-        <!-- Shows the response to a command -->
-        <p class="voice-response" id="voice-response"></p>
-
-        <button class="btn-primary" id="btn-after-voice">Next →</button>
-      </div>
-    </section>
-
-    <!-- 
-      SECTION 5: MUSIC VISUALIZER
-      Plays Happy Birthday. Web Audio API reads frequency data.
-      Canvas draws bars that react to the beat.
-    -->
-    <section class="section" data-section="5" id="visualizer-section">
-      <div class="section-content">
-        <h2 class="section-title">🎵 Your Song</h2>
-
-        <!-- 
-          The <audio> element. We won't show default controls —
-          our own JS buttons will control it so we can hook into
-          the Web Audio API at the same time.
-          crossorigin needed for Web Audio API to work with the file.
-        -->
-        <audio id="birthday-audio" crossorigin="anonymous">
-          <!-- 
-            src is a placeholder. You'll drop an mp3 into the repo
-            and update this path. We'll cover this in Phase 5.
-          -->
-          <source src="audio/happy-birthday.mp3" type="audio/mpeg" />
-        </audio>
-
-        <!-- Canvas where frequency bars are drawn -->
-        <canvas id="visualizer-canvas"></canvas>
-
-        <button class="btn-primary" id="btn-play-song">▶ Play</button>
-        <button class="btn-primary" id="btn-after-song">Next →</button>
-      </div>
-    </section>
-
-    <!-- 
-      SECTION 6: FINAL MESSAGE
-      Personal message + their selfie from the photo booth.
-      The big emotional payoff at the end.
-    -->
-    <section class="section" data-section="6" id="final-section">
-      <div class="section-content">
-        <h2 class="section-title">For You, Always 💚</h2>
-
-        <!-- 
-          This selfie-final img src gets set by JS when the
-          user captures their selfie in the booth section.
-          It's stored in a JS variable and applied here at the end.
-        -->
-        <img class="final-selfie" id="final-selfie" alt="" />
-
-        <!-- 
-          Personal message. You'll edit the text in script.js
-          config — not hardcoded here, so it's easy to change.
-        -->
-        <div class="final-message" id="final-message">
-          <!-- JS fills this in from the config object -->
+        <div class="command-chips">
+          <span class="chip">"more confetti"</span>
+          <span class="chip">"tell me a reason"</span>
+          <span class="chip">"play song"</span>
+          <span class="chip">"happy birthday"</span>
         </div>
 
-        <!-- Restart the whole journey -->
-        <button class="btn-secondary" id="btn-restart">
-          🔁 From the Beginning
+        <button class="btn-mic-big" id="btn-voice">
+          <span class="mic-pulse"></span>
+          🎤
+        </button>
+
+        <div class="voice-feedback" id="voice-feedback" style="display: none">
+          <p class="voice-heard">
+            Heard: "<span id="voice-transcript"></span>"
+          </p>
+          <p class="voice-response" id="voice-response"></p>
+        </div>
+
+        <button
+          class="btn-primary"
+          id="btn-after-voice"
+          style="margin-top: 2rem"
+        >
+          Next →
         </button>
       </div>
     </section>
 
-    <!-- 
-      canvas-confetti CDN — a tiny library (no npm needed)
-      that makes confetti bursts easy. We load it from a CDN
-      (Content Delivery Network) so we don't need to install anything.
-      It adds a global `confetti` function to our JS.
-    -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <!-- ═══════════════════════════════════════
+       SECTION 5 — MUSIC VISUALIZER
+  ═══════════════════════════════════════ -->
+    <section class="section" data-section="5" id="visualizer-section">
+      <div class="blob blob-2"></div>
+      <div class="section-content">
+        <p class="pre-title">your song 🎵</p>
+        <h2 class="section-title">Happy Birthday</h2>
+        <p class="section-hint">Press play and watch the music come alive</p>
 
-    <!-- 
-      Our own script. IMPORTANT: This goes at the BOTTOM of body,
-      AFTER all the HTML elements. This way when JS runs, all the
-      elements above already exist in the page and JS can find them.
-      If you put it in <head>, JS would run before the elements
-      exist and it would crash.
-    -->
+        <div class="visualizer-wrap">
+          <canvas id="visualizer-canvas"></canvas>
+          <div class="viz-glow"></div>
+        </div>
+
+        <!-- 
+        DROP your mp3 file into a folder called "audio" in this project.
+        Name it: happy-birthday.mp3
+        Or swap the src below with any royalty-free song URL.
+      -->
+        <audio id="birthday-audio" crossorigin="anonymous">
+          <source src="audio/happy-birthday.mp3" type="audio/mpeg" />
+        </audio>
+
+        <div class="player-controls">
+          <button class="btn-play" id="btn-play-song">▶ Play Song</button>
+          <button class="btn-play" id="btn-stop-song" style="display: none">
+            ⏹ Stop
+          </button>
+        </div>
+
+        <button
+          class="btn-primary"
+          id="btn-after-song"
+          style="margin-top: 1.5rem"
+        >
+          Next →
+        </button>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+       SECTION 6 — FINAL MESSAGE
+  ═══════════════════════════════════════ -->
+    <section class="section" data-section="6" id="final-section">
+      <canvas id="final-canvas"></canvas>
+      <div class="blob blob-3"></div>
+      <div class="section-content final-content">
+        <p class="pre-title">always & forever 💚</p>
+        <h2 class="section-title final-title">For You, Simran</h2>
+
+        <div class="final-layout">
+          <div
+            class="final-selfie-wrap"
+            id="final-selfie-wrap"
+            style="display: none"
+          >
+            <img class="final-selfie" id="final-selfie" alt="Your selfie" />
+          </div>
+          <div class="final-message" id="final-message"></div>
+        </div>
+
+        <div class="final-actions">
+          <button class="btn-confetti" id="btn-more-confetti">
+            🎉 More Confetti!
+          </button>
+          <button class="btn-secondary" id="btn-restart">
+            🔁 From the Beginning
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CDNs — loaded before script.js -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
