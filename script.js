@@ -3,7 +3,7 @@
    ════════════════════════════════════════════ */
 const CONFIG = {
   name: "Simran",
-  candleCount: 6,
+  candleCount: 4,
   cutsNeeded: 5, // clicks to fully slice the cake
   blowThreshold: 0.11, // mic volume 0–1 needed to blow (lower = easier)
 
@@ -87,10 +87,10 @@ class Particle {
     this.x = Math.random() * pCanvas.width;
     this.y = initial
       ? Math.random() * pCanvas.height // spread on load
-      : pCanvas.height + 30; // rise from bottom
+      : pCanvas.height + 26; // rise from bottom
     this.vy = -(Math.random() * 1.2 + 0.4);
     this.vx = Math.random() * 0.5 - 0.25;
-    this.size = Math.random() * 20 + 12;
+    this.size = Math.random() * 20 + 35;
     this.opacity = Math.random() * 0.5 + 0.45;
     this.wobble = Math.random() * Math.PI * 2;
     this.wobbleSpd = Math.random() * 0.035 + 0.01;
@@ -203,7 +203,7 @@ pCanvas.addEventListener("click", (e) => {
 });
 
 /* ════════════════════════════════════════════
-   ③ CAKE — BUILD CANDLES
+   CAKE — BUILD CANDLES
    ════════════════════════════════════════════ */
 const candlesRow = document.getElementById("candles-row");
 let candlesOut = 0;
@@ -241,7 +241,7 @@ function blowOutCandle() {
   // Small puff confetti
   confetti({
     particleCount: 12,
-    spread: 30,
+    spread: 40,
     origin: { x: 0.5, y: 0.4 },
     colors: ["#fff", "#b8e0c8"],
     scalar: 0.6,
@@ -259,7 +259,7 @@ function onAllCandlesOut() {
 
   // Big confetti burst
   confetti({
-    particleCount: 120,
+    particleCount: 220,
     spread: 90,
     origin: { y: 0.5 },
     colors: ["#7ec8a0", "#f9c6d0", "#f9c74f", "#fff"],
@@ -340,24 +340,42 @@ document.getElementById("btn-start-mic").addEventListener("click", startMic);
    ⑤ CLICK-TO-CUT CAKE
    ════════════════════════════════════════════ */
 let cutsLeft = CONFIG.cutsNeeded;
+let cutsDone = 0;
 
-document.getElementById("cake-wrapper").addEventListener("click", () => {
+document.getElementById("cake-wrapper").addEventListener("click", (e) => {
   if (document.getElementById("cut-prompt").style.display === "none") return;
 
   cutsLeft--;
-  document.getElementById("cuts-left").textContent = cutsLeft;
+  cutsDone++;
+  document.getElementById("cuts-left").textContent = Math.max(0, cutsLeft);
 
-  // Shake the cake
   const cw = document.getElementById("cake-wrapper");
-  cw.classList.add("sliced");
-  setTimeout(() => cw.classList.remove("sliced"), 300);
 
-  // Small confetti per cut
+  // Remove previous cut class, add shake
+  cw.className = cw.className.replace(/cut-\d/g, "").trim();
+  cw.classList.add("shaking");
+  setTimeout(() => cw.classList.remove("shaking"), 300);
+
+  // Add progressive cut class (cut-1 through cut-4)
+  const cutClass = `cut-${Math.min(cutsDone, 4)}`;
+  setTimeout(() => cw.classList.add(cutClass), 50);
+
+  // Draw a slash line on the cake
+  const slash = document.createElement("div");
+  slash.className = "slash-line";
+  cw.appendChild(slash);
+  setTimeout(() => slash.remove(), 600);
+
+  // Small confetti per cut — from cake position
   confetti({
-    particleCount: 20,
-    spread: 40,
-    origin: { x: 0.5, y: 0.55 },
-    colors: ["#f9c6d0", "#fff", "#f9c74f"],
+    particleCount: 29,
+    spread: 50,
+    origin: {
+      x: e.clientX / window.innerWidth,
+      y: e.clientY / window.innerHeight,
+    },
+    colors: ["#f9c6d0", "#fff", "#f9c74f", "#b8e0c8"],
+    scalar: 0.8,
   });
 
   if (cutsLeft <= 0) {
@@ -367,6 +385,11 @@ document.getElementById("cake-wrapper").addEventListener("click", () => {
 
 function onCakeCut() {
   document.getElementById("cut-prompt").style.display = "none";
+
+  // Final dramatic split
+  const cw = document.getElementById("cake-wrapper");
+  cw.className = cw.className.replace(/cut-\d/g, "").trim();
+  cw.classList.add("cut-done");
 
   // Big celebration burst
   ["left", "right"].forEach((side, i) => {
@@ -446,40 +469,124 @@ function drawBoothOverlay() {
 }
 
 function captureSelfie() {
-  // Create a merged canvas: video frame + overlay
   const merged = document.createElement("canvas");
   merged.width = boothCanvas.width;
   merged.height = boothCanvas.height;
   const mCtx = merged.getContext("2d");
 
-  // Flip horizontally to match the mirrored CSS on the video
+  // Draw the mirrored video frame
   mCtx.save();
   mCtx.scale(-1, 1);
   mCtx.drawImage(boothVideo, -merged.width, 0, merged.width, merged.height);
   mCtx.restore();
 
-  // Apply filter if selected
+  // Apply colour filter overlay
   if (activeFilter === "warm") {
     mCtx.fillStyle = "rgba(255,180,80,0.15)";
     mCtx.fillRect(0, 0, merged.width, merged.height);
   } else if (activeFilter === "cool") {
     mCtx.fillStyle = "rgba(80,120,255,0.12)";
     mCtx.fillRect(0, 0, merged.width, merged.height);
+  } else if (activeFilter === "dreamy") {
+    mCtx.fillStyle = "rgba(200,180,255,0.1)";
+    mCtx.fillRect(0, 0, merged.width, merged.height);
   }
 
-  // Draw the overlay (banner) on top
-  mCtx.drawImage(boothCanvas, 0, 0);
+  // ── BIRTHDAY FRAME ─────────────────────────
+
+  mCtx.save();
+
+  // Background confetti
+  for (let i = 0; i < 60; i++) {
+    const x = Math.random() * merged.width;
+    const y = Math.random() * 80;
+
+    mCtx.fillStyle = ["#ff4d6d", "#4dabf7", "#ffd43b", "#69db7c"][
+      Math.floor(Math.random() * 4)
+    ];
+
+    mCtx.fillRect(x, y, 6, 6);
+  }
+
+  // ── PARTY FLAGS (TOP) ──
+
+  const flagCount = 8;
+  const spacing = merged.width / (flagCount + 1);
+
+  for (let i = 1; i <= flagCount; i++) {
+    const x = spacing * i;
+
+    mCtx.beginPath();
+    mCtx.moveTo(x - 15, 20);
+    mCtx.lineTo(x + 15, 20);
+    mCtx.lineTo(x, 50);
+    mCtx.closePath();
+
+    const colors = [
+      "#ff922b",
+      "#ff6b6b",
+      "#4dabf7",
+      "#845ef7",
+      "#ffd43b",
+      "#20c997",
+    ];
+
+    mCtx.fillStyle = colors[i % colors.length];
+    mCtx.fill();
+  }
+
+  // ── BALLOONS (LEFT) ──
+
+  function drawBalloon(x, y, color) {
+    mCtx.beginPath();
+    mCtx.arc(x, y, 18, 0, Math.PI * 2);
+    mCtx.fillStyle = color;
+    mCtx.fill();
+
+    mCtx.beginPath();
+    mCtx.moveTo(x, y + 18);
+    mCtx.quadraticCurveTo(x - 5, y + 45, x + 2, y + 65);
+    mCtx.strokeStyle = "#999";
+    mCtx.stroke();
+  }
+
+  drawBalloon(40, merged.height - 80, "#ff4d6d");
+  drawBalloon(70, merged.height - 70, "#ff922b");
+
+  // ── BALLOONS (RIGHT) ──
+
+  drawBalloon(merged.width - 40, merged.height - 80, "#ff4d6d");
+  drawBalloon(merged.width - 70, merged.height - 70, "#ff922b");
+
+  // ── HAPPY BIRTHDAY TEXT ──
+
+  mCtx.fillStyle = "#20c997";
+  mCtx.font = `bold 40px "DM Sans", sans-serif`;
+  mCtx.textAlign = "center";
+  mCtx.fillText("Happy Birthday :)", merged.width / 2, merged.height - 60);
+
+  mCtx.restore();
+  // ── BANNER ────────────────────────────────────
+  mCtx.save();
+  mCtx.fillStyle = "rgba(126,200,160,0.88)";
+  mCtx.fillRect(0, merged.height - 36, merged.width, 36);
+  mCtx.fillStyle = "#fff";
+  mCtx.font = `bold 19px "DM Sans", sans-serif`;
+  mCtx.textAlign = "center";
+  mCtx.fillText(
+    `🎂 y look beautifull!! ${CONFIG.name}! 🎂`,
+    merged.width / 2,
+    merged.height - 12,
+  );
+  mCtx.restore();
 
   selfieDataURL = merged.toDataURL("image/png");
 
-  // Show result
   document.getElementById("selfie-img").src = selfieDataURL;
   document.getElementById("selfie-result").style.display = "block";
   document.getElementById("btn-capture").style.display = "none";
 
-  // Stop camera to save power
   stopCamera();
-
   confetti({
     particleCount: 60,
     spread: 70,
@@ -586,7 +693,7 @@ document
    ════════════════════════════════════════════ */
 const vizCanvas = document.getElementById("visualizer-canvas");
 const vizCtx = vizCanvas.getContext("2d");
-const audioEl = document.getElementById("birthday-audio");
+const audioEl = document.getElementById("theAudio");
 let vizSource = null;
 let vizAnalyser = null;
 
@@ -735,6 +842,9 @@ document.getElementById("btn-more-confetti").addEventListener("click", () => {
 document.getElementById("btn-restart").addEventListener("click", () => {
   // Reset cake
   cutsLeft = CONFIG.cutsNeeded;
+  cutsDone = 0;
+  const cw = document.getElementById("cake-wrapper");
+  cw.className = cw.className.replace(/cut-[\d\w]+/g, "").trim();
   document.getElementById("cut-prompt").style.display = "none";
   document.getElementById("wish-done").style.display = "none";
   document.getElementById("volume-wrap").style.display = "none";

@@ -418,12 +418,92 @@ body {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* Slice animation */
-.cake-wrapper.sliced .cake-layer {
-  transform: scaleY(0.92);
+/* Slice animation - each cut spreads layers apart */
+.cake-wrapper.cut-1 .cake-layer--top {
+  transform: translateY(-6px) rotate(-2deg);
 }
-.cake-wrapper.sliced .cake-layer--bottom {
-  transform: scaleY(0.88) translateY(4px);
+.cake-wrapper.cut-2 .cake-layer--top {
+  transform: translateY(-12px) rotate(-4deg);
+}
+.cake-wrapper.cut-3 .cake-layer--top {
+  transform: translateY(-18px) rotate(-6deg);
+}
+.cake-wrapper.cut-4 .cake-layer--top {
+  transform: translateY(-24px) rotate(-8deg);
+}
+.cake-wrapper.cut-4 .cake-layer--middle {
+  transform: translateY(-8px) rotate(2deg);
+}
+
+/* Final cut — cake fully falls apart */
+.cake-wrapper.cut-done .cake-layer--top {
+  transform: translateY(-40px) translateX(60px) rotate(25deg);
+  opacity: 0.7;
+  transition:
+    transform 0.6s ease,
+    opacity 0.6s ease;
+}
+.cake-wrapper.cut-done .cake-layer--middle {
+  transform: translateY(10px) translateX(-40px) rotate(-15deg);
+  opacity: 0.8;
+  transition:
+    transform 0.6s ease,
+    opacity 0.6s ease;
+}
+.cake-wrapper.cut-done .cake-layer--bottom {
+  transform: translateY(20px) scaleX(1.05);
+  transition: transform 0.6s ease;
+}
+
+/* Knife slash line that appears on click */
+.slash-line {
+  position: absolute;
+  top: 50%;
+  left: 10%;
+  width: 80%;
+  height: 3px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.9),
+    transparent
+  );
+  border-radius: 2px;
+  transform: rotate(-8deg);
+  pointer-events: none;
+  animation: slashFade 0.5s ease forwards;
+  z-index: 10;
+}
+@keyframes slashFade {
+  0% {
+    opacity: 1;
+    transform: rotate(-8deg) scaleX(0);
+  }
+  40% {
+    opacity: 1;
+    transform: rotate(-8deg) scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(-8deg) scaleX(1);
+  }
+}
+
+/* Shake on click */
+@keyframes cakeShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-6px) rotate(-1deg);
+  }
+  75% {
+    transform: translateX(6px) rotate(1deg);
+  }
+}
+.cake-wrapper.shaking {
+  animation: cakeShake 0.3s ease;
 }
 
 /* Mic UI */
