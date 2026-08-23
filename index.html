@@ -54,10 +54,21 @@
         <div id="final-modal-body"></div>
       </div>
     </div>
+    <!-- Live ASCII camera modal -->
+    <div id="ascii-modal" class="hidden">
+      <div id="ascii-modal-backdrop"></div>
+      <div id="ascii-modal-frame">
+        <pre id="ascii-output"></pre>
+        <p id="ascii-status"></p>
+        <button id="ascii-capture-btn" class="next-btn">capture & copy</button>
+        <button id="ascii-modal-close">close</button>
+      </div>
+    </div>
 
     <script src="config.js"></script>
     <script src="mic.js"></script>
     <script src="rooms.js"></script>
     <script src="main.js"></script>
+    <script src="ascii-camera.js"></script>
   </body>
 </html>

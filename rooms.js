@@ -229,6 +229,16 @@ window.Rooms = {
             },
             onInteract: () => openFinalPopup(),
           },
+          {
+            className: "stand-hotspot",
+            x: pct(65),
+            y: pct(45),
+            promptText: "look in the mirror",
+            render: (el) => {
+              el.textContent = "📷";
+            },
+            onInteract: () => openAsciiCam(),
+          },
           exitHotspot(pct(4), pct(46), "final"),
         ],
       };
@@ -507,4 +517,31 @@ function openFinalPopup() {
     modal.classList.add("hidden");
 
   modal.classList.remove("hidden");
+}
+
+// separate, top-level — this is what makes it callable from rooms.js hotspots
+function openAsciiCam() {
+  const modal = document.getElementById("ascii-modal");
+  const output = document.getElementById("ascii-output");
+  const status = document.getElementById("ascii-status");
+  status.textContent = "starting camera...";
+  modal.classList.remove("hidden");
+
+  window.AsciiCam.open(output, (err) => {
+    status.textContent = "couldn't access camera — check permissions";
+  });
+
+  document.getElementById("ascii-capture-btn").onclick = () => {
+    navigator.clipboard.writeText(output.textContent).then(() => {
+      status.textContent = "copied! send it to me now!!!";
+      setTimeout(() => {
+        status.textContent = "";
+      }, 2500);
+    });
+  };
+
+  document.getElementById("ascii-modal-close").onclick = () => {
+    window.AsciiCam.close();
+    modal.classList.add("hidden");
+  };
 }

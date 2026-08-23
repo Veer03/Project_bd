@@ -804,3 +804,53 @@ body {
   align-items: center;
   touch-action: none;
 }
+#ascii-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#ascii-modal.hidden {
+  display: none;
+}
+#ascii-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 7, 11, 0.85);
+}
+#ascii-modal-frame {
+  position: relative;
+  padding: 20px;
+  border-radius: 12px;
+  background: #000;
+  border: 1px solid var(--neon-teal);
+  box-shadow: 0 0 40px rgba(94, 233, 212, 0.25);
+  max-width: 92vw;
+}
+#ascii-output {
+  color: var(--neon-teal);
+  font-family: monospace;
+  font-size: 6px;
+  line-height: 6px;
+  white-space: pre;
+  margin: 0;
+}
+#ascii-status {
+  color: var(--dim);
+  font-size: 12px;
+  text-align: center;
+  margin: 8px 0 0;
+}
+#ascii-modal-close {
+  display: block;
+  margin: 14px auto 0;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--dim);
+  padding: 7px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
