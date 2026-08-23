@@ -152,6 +152,35 @@ function setupTouchControls() {
   interactBtn.addEventListener("click", tryInteract);
 }
 
+// makes a hotspot element draggable with mouse or touch (pointer events cover both)
+function makeDraggable(el) {
+  let dragging = false,
+    offsetX = 0,
+    offsetY = 0;
+
+  el.addEventListener("pointerdown", (e) => {
+    dragging = true;
+    el.setPointerCapture(e.pointerId);
+    const rect = el.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+    el.style.zIndex = 50; // bring to front while dragging
+  });
+
+  el.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    el.style.left = e.clientX - offsetX + "px";
+    el.style.top = e.clientY - offsetY + "px";
+  });
+
+  const stopDrag = () => {
+    dragging = false;
+    el.style.zIndex = "";
+  };
+  el.addEventListener("pointerup", stopDrag);
+  el.addEventListener("pointercancel", stopDrag);
+}
+
 // ---------------- Scene switching ----------------
 function goToScene(key) {
   Popup.close();
@@ -175,6 +204,7 @@ function goToScene(key) {
     el.style.animationDelay = i * 0.12 + "s";
     if (h.rotate) el.style.transform = `rotate(${h.rotate}deg)`;
     if (h.render) h.render(el);
+    if (h.className.includes("photo-hotspot")) makeDraggable(el);
     hotspotsEl.appendChild(el);
     return { ...h, el };
   });
