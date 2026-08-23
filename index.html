@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>10-C // a walk through the garden</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Name gate -->
+    <div id="name-gate">
+      <div style="font-size: 20px; letter-spacing: 0.05em">
+        enter tha password
+      </div>
+      <input id="name-input" type="text" placeholder="..." />
+      <div id="name-error"></div>
+    </div>
+
+    <!-- Everything happens on one full-screen stage. Scenes swap background + hotspots. -->
+    <div id="stage" style="display: none">
+      <div id="scene-decor"></div>
+      <div id="hotspots"></div>
+      <div id="player"><div id="player-glow"></div></div>
+      <div id="prompt"></div>
+    </div>
+
+    <!-- Bottom-sheet popup: used for QA / memories / puzzle / party / final.
+       Never covers the whole screen — player + scene stay visible above it. -->
+    <div id="popup" class="hidden">
+      <div id="popup-title"></div>
+      <div id="popup-body"></div>
+      <button id="popup-close">close</button>
+    </div>
+
+    <!-- Photo lightbox: full-screen blurred backdrop, big polaroid-style frame -->
+    <div id="lightbox" class="hidden">
+      <div id="lightbox-backdrop"></div>
+      <div id="lightbox-frame">
+        <img id="lightbox-img" src="" />
+        <button id="lightbox-close">×</button>
+      </div>
+    </div>
+    <!-- Final room modal: centered, standalone (not the bottom-sheet popup) -->
+    <div id="final-modal" class="hidden">
+      <div id="final-modal-backdrop"></div>
+      <div id="final-modal-frame">
+        <div id="final-modal-body"></div>
+      </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="mic.js"></script>
+    <script src="rooms.js"></script>
+    <script src="main.js"></script>
+  </body>
+</html>
