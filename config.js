@@ -60,5 +60,5 @@ window.CONFIG = {
   finalLetter:
     "I didn't got much time to make this better. At first i was confused about making this, but idk i just wanted to do somthing....i could have done better. I hope you know y are not just a normal girl to me :) and ill always feel the same about that. I hope you like this, and i hope you have a great birthday. I wish y the bEst. I just wanted to say that i care/adore y and ill always do. I hope we can meet soon, and i hope we can make crazy good memories together instead of barely even talking. , Happy Birthday Sachi!!",
   giftReveal:
-    "le me know what y think, its fine if y cant resiprocate much things i typed here, just know that imma be here forever no matter how bad y fck up, dumbass:)(also whatever y type here copy that and whatsapp me cuz i havent added any data bse here, sighhhh ik i could have done a lott better )",
+    "le me know what y think, its fine if y cant resiprocate much things i typed here, just know that imma be here forever no matter how bad y fck up, dumbass:)(also i cannot see the things y type in here, so just voice rec on whatsapp or call and give some reviews:), cuz i wanna hear ur voice , its been a while... )",
 };
